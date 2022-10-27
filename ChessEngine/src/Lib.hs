@@ -5,3 +5,5 @@ module Lib
 someFunc :: IO ()
 someFunc = putStrLn "someFunc"
 
+fun1 :: Bool
+fun1 = True 

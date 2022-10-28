@@ -4,7 +4,7 @@ import Language.Haskell.TH.Syntax (Lit(IntegerL))
 
 data Figur = F {x::Integer, y::Integer, name::String, color::Char} deriving Show
 
-data Move = M {xalt::Integer, yalt::Integer, xnew::Integer, ynew::Integer} deriving Show 
+data Move = M {xalt::Char, yalt::Integer, xnew::Char, ynew::Integer} deriving Show 
 
 
 createpawns :: Char -> [Figur]

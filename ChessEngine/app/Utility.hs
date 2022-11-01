@@ -75,6 +75,3 @@ isOccupied [] _ _ _ = False
 isOccupied (f:fs) c xn yn = (color f == c && x f == xn && y f == yn) || isOccupied fs c xn yn
 
 --chain is occupied on each square by dividing the elements of the tupel containing the positional difference with the highest value to get proper increments to check procedually
-
-thatsNotAllowedYouSillyComputer = ":("
-                            

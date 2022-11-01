@@ -17,9 +17,9 @@ makeMoveList :: Figur -> [[Integer]] -> [Move]
 makeMoveList _ [] = []
 makeMoveList f (m:ms) = M (convToX(x f)) (y f) (convToX (x f + m!!0)) (y f + m!!1) : makeMoveList f ms  
 
-createPossibleBoards :: [Figur] -> [Figur] -> [[Figur]]
-createPossibleBoards _ [] = []
-createPossibleBoards b (x:xs) = moveFigure b (makeMoveList x moves) ++ createPossibleBoards b xs
+createBoardVariations :: [Figur] -> [Figur] -> [[Figur]]
+createBoardVariations _ [] = []
+createBoardVariations b (x:xs) = moveFigure b (makeMoveList x moves) ++ createBoardVariations b xs
                 where moves | name x == "pawn" = pawnMoves
                             | name x == "knight" = knightMoves
                             | name x == "rook" = rookMoves
@@ -27,7 +27,19 @@ createPossibleBoards b (x:xs) = moveFigure b (makeMoveList x moves) ++ createPos
                             | name x == "queen" = queenMoves
                             | name x == "king" = kingMoves
                             | otherwise = []
- 
+
+createAllBoardVariations :: [[Figur]] -> [[Figur]]
+createAllBoardVariations [] = []
+createAllBoardVariations [b] = createBoardVariations b b
+createAllBoardVariations (b:bs) = (createBoardVariations b b) ++ createAllBoardVariations bs
+
+createVariationsDepthBased :: [[Figur]] -> Int -> [[Figur]]
+createVariationsDepthBased [] x = []
+createVariationsDepthBased b 0 = b
+createVariationsDepthBased b 1 = createAllBoardVariations b
+createVariationsDepthBased b x =  createVariationsDepthBased (createAllBoardVariations b) (x-1)
+
+
 chooseBestBoard :: [[Figur]] -> [Figur] -- Für Farbe anpassen
 chooseBestBoard [] = []
 chooseBestBoard [x] = x
@@ -45,7 +57,7 @@ evaluateChessboard (x:xs) = y + evaluateChessboard xs
                                     | name x == "queen" = 9
                                     | otherwise = 0
 
-bestMove :: [Figur] -> Integer -> String
+bestMove :: [Figur] -> Int -> String
 bestMove b x = reverse (take 4 (drop ((fromIntegral x-1)*4) (reverse (name (head b)))))
 
 updateBoard :: [Figur] -> Move -> [Figur]
@@ -64,10 +76,6 @@ figurCheck f m  | x f == convX (xalt m) && y f == yalt m = F (convX (xnew m)) (y
                 | x f == -1 = F (x f) (y f) (name f++convFromMove m) (color f)
                 | otherwise = f
 
-cpuMove :: String -> Integer -> String
-cpuMove s i = bestMove (chooseBestBoard (createPossibleBoards b1 b1)) i
-        where b1 = updateBoardAll starterBoard (convMoves s)
-
-boardDuplicator :: Int -> [[Figur]]
-boardDuplicator 0 = []
-boardDuplicator x = [starterBoard] ++ boardDuplicator (x-1)
+cpuMove :: String -> Int -> String
+cpuMove s i = bestMove (chooseBestBoard (createVariationsDepthBased b1 i)) i
+        where b1 = [updateBoardAll (take 3 starterBoard) (convMoves s)]

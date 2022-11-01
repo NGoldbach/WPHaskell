@@ -61,3 +61,20 @@ createRest c = [F 0 y "rook" c, F 1 y "knight" c, F 2 y "bishop" c, F 3 y "queen
 
 createFigures :: Char -> [Figur]
 createFigures c = createRest c ++ createpawns c
+
+validMove :: [Figur] -> Figur -> Move -> Bool
+validMove [] _ _ = False
+validMove b f (M x1 y1 x2 y2)
+        |color f /= color (head b) = False
+        |convX (x2) < 0 || convX (x2) > 7 || y2 < 0 || y2 > 7 = False
+        |isOccupied b (color (head b)) (convX x2) y2 = False 
+        |otherwise = True
+
+isOccupied :: [Figur] -> Char -> Integer -> Integer -> Bool
+isOccupied [] _ _ _ = False
+isOccupied (f:fs) c xn yn = (color f == c && x f == xn && y f == yn) || isOccupied fs c xn yn
+
+--chain is occupied on each square by dividing the elements of the tupel containing the positional difference with the highest value to get proper increments to check procedually
+
+thatsNotAllowedYouSillyComputer = ":("
+                            

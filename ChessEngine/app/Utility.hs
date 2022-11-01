@@ -60,4 +60,4 @@ createRest c = [F 0 y "rook" c, F 1 y "knight" c, F 2 y "bishop" c, F 3 y "queen
                        | otherwise = -1
 
 createFigures :: Char -> [Figur]
-createFigures c = createRest c ++ createpawns c 
+createFigures c = createRest c ++ createpawns c

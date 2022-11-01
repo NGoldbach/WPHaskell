@@ -78,4 +78,4 @@ figurCheck f m  | x f == convX (xalt m) && y f == yalt m = F (convX (xnew m)) (y
 
 cpuMove :: String -> Int -> String
 cpuMove s i = bestMove (chooseBestBoard (createVariationsDepthBased b1 i)) i
-        where b1 = [updateBoardAll (take 3 starterBoard) (convMoves s)]
+        where b1 = [updateBoardAll starterBoard (convMoves s)]

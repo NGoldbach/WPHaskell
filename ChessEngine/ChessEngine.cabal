@@ -24,8 +24,6 @@ source-repository head
   location: https://github.com/githubuser/ChessEngine
 
 library
-  exposed-modules:
-      Lib
   other-modules:
       Paths_ChessEngine
   hs-source-dirs:
@@ -38,6 +36,7 @@ library
 executable ChessEngine-exe
   main-is: Main.hs
   other-modules:
+      Utility
       Paths_ChessEngine
   hs-source-dirs:
       app

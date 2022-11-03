@@ -62,6 +62,14 @@ createRest c = [F 0 y "rook" c, F 1 y "knight" c, F 2 y "bishop" c, F 3 y "queen
 createFigures :: Char -> [Figur]
 createFigures c = createRest c ++ createpawns c
 
+
+colorSwap :: [[Figur]] -> [[Figur]]
+colorSwap [] = []
+colorSwap (b:bs) = [y : tail b] ++ colorSwap bs
+        where y = F (-1) (-1) (name (head b)) (c)
+                where c | color (head b) == 'w' = 'b'
+                        | otherwise = 'w'
+
 validMove :: [Figur] -> Figur -> Move -> Bool
 validMove [] _ _ = False
 validMove b f (M x1 y1 x2 y2)

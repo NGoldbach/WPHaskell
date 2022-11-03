@@ -40,14 +40,6 @@ calculateDepthBased b 0 0 = colorSwap [chooseBestBoard b]
 calculateDepthBased b 0 1 = [chooseBestBoard (colorSwap b)]
 calculateDepthBased (b:bs) x y = calculateDepthBased ((calculateDepthBased (createBoardVariations b b) (x-1) 0) ++ (calculateDepthBased bs (x)) 0) 0 y
 
-colorSwap :: [[Figur]] -> [[Figur]]
-colorSwap [] = []
-colorSwap (b:bs) = [y : tail b] ++ colorSwap bs
-        where y = F (-1) (-1) (name (head b)) (c)
-                where c | color (head b) == 'w' = 'b'
-                        | otherwise = 'w'
- 
-
 chooseBestBoard :: [[Figur]] -> [Figur] -- Für Farbe anpassen
 chooseBestBoard [] = []
 chooseBestBoard [x] = x

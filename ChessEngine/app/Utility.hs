@@ -74,4 +74,22 @@ isOccupied :: [Figur] -> Char -> Integer -> Integer -> Bool
 isOccupied [] _ _ _ = False
 isOccupied (f:fs) c xn yn = (color f == c && x f == xn && y f == yn) || isOccupied fs c xn yn
 
+padString :: String -> String
+padString [] = []
+padString s = take 4 s ++ " " ++ padString (drop 4 s) 
+
 --chain is occupied on each square by dividing the elements of the tupel containing the positional difference with the highest value to get proper increments to check procedually
+
+
+--Test Kram
+f0 :: Figur
+f0 = F (-1) (-1) "" 'w'
+f1 :: Figur
+f1 = F 4 4 "knight" 'w'
+f2 :: Figur
+f2 = F 0 1 "pawn" 'b'
+f3 :: Figur
+f3 = F 5 6 "queen" 'b'
+testB = testB1
+testB1 = [f0,f1,f2,f3]
+testB2 = [f0,f1,f2]

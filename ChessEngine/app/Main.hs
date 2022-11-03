@@ -34,12 +34,19 @@ createAllBoardVariations [] = []
 createAllBoardVariations [b] = createBoardVariations b b
 createAllBoardVariations (b:bs) = (createBoardVariations b b) ++ createAllBoardVariations bs
 
-createVariationsDepthBased :: [[Figur]] -> Int -> [[Figur]]
-createVariationsDepthBased [] x = []
-createVariationsDepthBased b 0 = b
-createVariationsDepthBased b 1 = createAllBoardVariations b
-createVariationsDepthBased b x =  createVariationsDepthBased (createAllBoardVariations b) (x-1)
+calculateDepthBased :: [[Figur]] -> Int -> Int -> [[Figur]] --Funktioniert für Tiefe 0,1,2, aber nicht für höher? Muss bearbeitet werden, immernoch falsch
+calculateDepthBased [] _ _ = []
+calculateDepthBased b 0 0 = colorSwap [chooseBestBoard b]
+calculateDepthBased b 0 1 = [chooseBestBoard (colorSwap b)]
+calculateDepthBased (b:bs) x y = calculateDepthBased ((calculateDepthBased (createBoardVariations b b) (x-1) 0) ++ (calculateDepthBased bs (x)) 0) 0 y
 
+colorSwap :: [[Figur]] -> [[Figur]]
+colorSwap [] = []
+colorSwap (b:bs) = [y : tail b] ++ colorSwap bs
+        where y = F (-1) (-1) (name (head b)) (c)
+                where c | color (head b) == 'w' = 'b'
+                        | otherwise = 'w'
+ 
 
 chooseBestBoard :: [[Figur]] -> [Figur] -- Für Farbe anpassen
 chooseBestBoard [] = []
@@ -62,7 +69,7 @@ evaluateChessboard (x:xs) c = y + evaluateChessboard xs c
                                             | otherwise = 1
 
 bestMove :: [Figur] -> Int -> String
-bestMove b x = reverse (take 4 (drop ((fromIntegral x-1)*4) (reverse (name (head b)))))
+bestMove b x = padString (reverse (take (x*4) (reverse (name (head b)))))
 
 updateBoard :: [Figur] -> Move -> [Figur]
 updateBoard [] _ = []
@@ -83,5 +90,6 @@ figurCheck f m  | x f == convX (xalt m) && y f == yalt m = F (convX (xnew m)) (y
                                 | otherwise = 'w'
 
 cpuMove :: String -> Int -> String
-cpuMove s i = bestMove (chooseBestBoard (createVariationsDepthBased b1 i)) i
-        where b1 = [updateBoardAll starterBoard (convMoves s)]
+cpuMove s i = bestMove (head (calculateDepthBased b1 i 1)) i
+        where b1 = [updateBoardAll testB (convMoves s)]
+        --where b1 = testB

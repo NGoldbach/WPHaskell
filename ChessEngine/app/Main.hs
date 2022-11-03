@@ -36,17 +36,15 @@ createAllBoardVariations (b:bs) = (createBoardVariations b b) ++ createAllBoardV
 
 calculateDepthBased :: [[Figur]] -> Int -> Int -> [[Figur]] --Funktioniert für Tiefe 0,1,2, aber nicht für höher? Muss bearbeitet werden, immernoch falsch
 calculateDepthBased [] _ _ = []
-calculateDepthBased b 0 0 = colorSwap [chooseBestBoard b]
-calculateDepthBased b 0 1 = [chooseBestBoard (colorSwap b)]
+calculateDepthBased b 0 0 = colorSwap [chooseBestBoard b (color (head (head b)))] 
+calculateDepthBased b 0 1 = [chooseBestBoard b1 (color(head(head b1)))] where b1 = colorSwap b
 calculateDepthBased (b:bs) x y = calculateDepthBased ((calculateDepthBased (createBoardVariations b b) (x-1) 0) ++ (calculateDepthBased bs (x)) 0) 0 y
 
-chooseBestBoard :: [[Figur]] -> [Figur] -- Für Farbe anpassen
-chooseBestBoard [] = []
-chooseBestBoard [x] = x
-chooseBestBoard (x:x2:xs) | evaluateChessboard x y >= evaluateChessboard x2 y = chooseBestBoard (x:xs)
-                          | otherwise = chooseBestBoard (x2:xs)
-                          where y = color (head x)
-
+chooseBestBoard :: [[Figur]] -> Char -> [Figur] -- Für Farbe anpassen
+chooseBestBoard [] _ = []
+chooseBestBoard [x] _ = x
+chooseBestBoard (x:x2:xs) c | evaluateChessboard x c >= evaluateChessboard x2 c = chooseBestBoard (x:xs) c
+                            | otherwise = chooseBestBoard (x2:xs) c
 
 evaluateChessboard :: [Figur] -> Char -> Int
 evaluateChessboard [] _ = 0
@@ -83,5 +81,8 @@ figurCheck f m  | x f == convX (xalt m) && y f == yalt m = F (convX (xnew m)) (y
 
 cpuMove :: String -> Int -> String
 cpuMove s i = bestMove (head (calculateDepthBased b1 i 1)) i
-        where b1 = [updateBoardAll testB (convMoves s)]
-        --where b1 = testB
+        where b1 = [updateBoardAll starterBoard (convMoves s)]
+
+cpuMoveTest :: String -> Int -> String
+cpuMoveTest s i = bestMove (head (calculateDepthBased b1 i 1)) i
+         where b1 = [updateBoardAll testB(convMoves s)]

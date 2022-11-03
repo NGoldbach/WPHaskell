@@ -93,11 +93,13 @@ padString s = take 4 s ++ " " ++ padString (drop 4 s)
 f0 :: Figur
 f0 = F (-1) (-1) "" 'w'
 f1 :: Figur
-f1 = F 4 4 "knight" 'w'
+f1 = F 5 5 "knight" 'w'
 f2 :: Figur
-f2 = F 0 1 "pawn" 'b'
+f2 = F 0 0 "king" 'b'
 f3 :: Figur
-f3 = F 5 6 "queen" 'b'
+f3 = F 6 7 "queen" 'b'
+f4 = F 0 1 "pawn" 'w'
+f5 = F 7 0 "pawn" 'b'
 testB = testB1
 testB1 = [f0,f1,f2,f3]
 testB2 = [f0,f1,f2]

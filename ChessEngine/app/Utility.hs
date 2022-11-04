@@ -1,21 +1,20 @@
 module Utility where
 import Data.Char(digitToInt)
 
-data Figur = F {x::Integer, y::Integer, name::String, color::Char} | F2 {} deriving (Show, Eq, Ord)
-data Move = M {xalt::Char, yalt::Integer, xnew::Char, ynew::Integer} deriving Show 
+data Figur = F {x::Int, y::Int, name::String, color::Char} | F2 {} deriving (Show, Eq, Ord)
+data Move = M {xalt::Char, yalt::Int, xnew::Char, ynew::Int} deriving Show 
 
-convX :: Char -> Integer
-convX c = toInteger(fromEnum c-65)
-
-convToX :: Integer -> Char
-convToX x =  toEnum (fromIntegral(x + 65))
+convX :: Char -> Int
+convX c = fromEnum c-65
+convToX :: Int -> Char
+convToX x =  toEnum (x + 65)
 
 convToMove :: String -> Move
 convToMove s = 
             let     a = s!!0
-                    b = toInteger (digitToInt (s!!1))
+                    b = digitToInt (s!!1)
                     c = s!!2
-                    d = toInteger (digitToInt (s!!3))
+                    d = digitToInt (s!!3)
             in M a b c d
 
 convMoves :: String -> [Move]
@@ -27,22 +26,22 @@ convMoves s = [convToMove (take 4 s)] ++ x
 convFromMove :: Move -> [Char]
 convFromMove (M a b c d) = [a] ++ [convToX (b-17)]++[c] ++ [convToX (d-17)]
 
-pawnMoves :: [[Integer]]
+pawnMoves :: [[Int]]
 pawnMoves = [[0,1],[0,2],[1,1],[-1,1]] 
 
-knightMoves :: [[Integer]]
+knightMoves :: [[Int]]
 knightMoves = [[a,b] | a <- [-2,-1,1,2], b <- [-2,-1,1,2], a + b == -3 || a + b == -1 || a + b == 1 || a + b == 3]
 
-kingMoves :: [[Integer]]
+kingMoves :: [[Int]]
 kingMoves = [[a,b] | a <- [-1,0,1], b <- [-1,0,1], a /= 0 || b /= 0]
 
-bishopMoves :: [[Integer]]
+bishopMoves :: [[Int]]
 bishopMoves = [[a,b] | a <- [-7..7], b <- [-7..7], abs a == abs b && a /= 0]  
 
-rookMoves :: [[Integer]]
+rookMoves :: [[Int]]
 rookMoves = [[a,b] | a <- [-7..7], b <- [-7..7], (a == 0) /= (b == 0)] 
 
-queenMoves :: [[Integer]]
+queenMoves :: [[Int]]
 queenMoves = bishopMoves ++ rookMoves
 
 createpawns :: Char -> [Figur]
@@ -78,7 +77,7 @@ validMove b f (M x1 y1 x2 y2)
         |isOccupied b (color (head b)) (convX x2) y2 = False 
         |otherwise = True
 
-isOccupied :: [Figur] -> Char -> Integer -> Integer -> Bool
+isOccupied :: [Figur] -> Char -> Int -> Int -> Bool
 isOccupied [] _ _ _ = False
 isOccupied (f:fs) c xn yn = (color f == c && x f == xn && y f == yn) || isOccupied fs c xn yn
 

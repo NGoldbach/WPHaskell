@@ -12,7 +12,7 @@ moveFigure :: [Figur] -> [Move] -> [[Figur]]
 moveFigure _ [] = []
 moveFigure b (m:ms) = updateBoard b m : moveFigure b ms 
 
-makeMoveList :: [Figur] -> Figur -> [[Integer]] -> [Move]
+makeMoveList :: [Figur] -> Figur -> [[Int]] -> [Move]
 makeMoveList _ _ [] = []
 makeMoveList b f (m:ms) = moveCheckResult ++ makeMoveList b f ms
                 where moveCheckResult   | (validMove b f currentMove) =  [currentMove]

@@ -35,12 +35,6 @@ createAllBoardVariations [] = []
 createAllBoardVariations [b] = createBoardVariations b b
 createAllBoardVariations (b:bs) = (createBoardVariations b b) ++ createAllBoardVariations bs
 
-calculateDepthBased :: [[Figur]] -> Int -> Int -> [[Figur]] --Funktioniert für Tiefe 0,1,2, aber nicht für höher? Muss bearbeitet werden, immernoch falsch
-calculateDepthBased [] _ _ = []
-calculateDepthBased b 0 0 = colorSwap [chooseBestBoard b (color (head (head b)))] 
-calculateDepthBased b 0 1 = [chooseBestBoard b1 (color(head(head b1)))] where b1 = colorSwap b
-calculateDepthBased (b:bs) x y = calculateDepthBased ((calculateDepthBased (createBoardVariations b b) (x-1) 0) ++ (calculateDepthBased bs (x)) 0) 0 y
-
 createDepthBased :: [[Figur]] -> Int -> [[Figur]]
 createDephtBased [] _ = []
 createDepthBased b 1 = b ++ createAllBoardVariations b
@@ -119,5 +113,29 @@ figurCheck f m  | x f == convX (xalt m) && y f == yalt m = F (convX (xnew m)) (y
                                 | otherwise = 'w'
 
 cpuMove :: String -> Int -> String
-cpuMove s i = bestMove (head (calculateDepthBased b1 i 1)) i
-        where b1 = [updateBoardAll starterBoard (convMoves s)]
+cpuMove s i = bestMove calcResult i
+        where calcResult = head(fst (calcDepthBased (calcSetup b1 i) i))
+                where b1 = updateBoardAll starterBoard (convMoves s)
+
+main = do
+        putStrLn "Enter All Previous Turns"
+        turns <- getLine
+        putStrLn "Enter Depth"
+        depth <- getLine
+        let x = (readInt depth)
+        putStrLn ""
+        print((cpuMove turns x))
+        putStrLn "\nNext Turn:"
+        main
+
+readInt :: String -> Int
+readInt = read
+
+
+
+
+-- calculateDepthBased :: [[Figur]] -> Int -> Int -> [[Figur]] --Funktioniert für Tiefe 0,1,2, aber nicht für höher? Muss bearbeitet werden, immernoch falsch
+-- calculateDepthBased [] _ _ = []
+-- calculateDepthBased b 0 0 = colorSwap [chooseBestBoard b (color (head (head b)))] 
+-- calculateDepthBased b 0 1 = [chooseBestBoard b1 (color(head(head b1)))] where b1 = colorSwap b
+-- calculateDepthBased (b:bs) x y = calculateDepthBased ((calculateDepthBased (createBoardVariations b b) (x-1) 0) ++ (calculateDepthBased bs (x)) 0) 0 y

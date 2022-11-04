@@ -42,15 +42,16 @@ createDepthBased b x = b ++ createDepthBased (createAllBoardVariations b) (x-1)
 
 createLengthList :: [[Figur]] -> Int -> [Int]
 createLengthList [] _ = []
-createLengthList b 0 = [length (filterByLength b (length (name (head (head b))) `div` 4))]
-createLengthList b x = [length (filterByLength b val)] ++ createLengthList b (x-1)
-                        where val = length (name (head (head b))) `div` 4 + x 
+createLengthList b 0 = [filterByLength b (length (name (head (head b))) `div` 4)]
+createLengthList b x = [y] ++ createLengthList (drop y b) (x-1)
+                        where y = filterByLength b val
+                                where val = length (name (head (head b))) `div` 4
 
-filterByLength :: [[Figur]] -> Int -> [[Figur]]
-filterByLength [] _ = []
-filterByLength (b:bs) x = boardCheck ++ filterByLength bs x
-                        where boardCheck | (length (name (head b))) == x*4 = [b]
-                                         | otherwise = []
+filterByLength :: [[Figur]] -> Int -> Int
+filterByLength [] _ = 0
+filterByLength (b:bs) x = boardCheck + filterByLength bs x
+                        where boardCheck | (length (name (head b))) == x*4 = 1
+                                         | otherwise = 0
 
 filterByMove :: [[Figur]] -> String -> [[Figur]]
 filterByMove [] _ = []
@@ -61,10 +62,11 @@ filterByMove (b:bs) s = boardCheck ++ filterByMove bs s
 boardComparator :: [[Figur]] -> [[Figur]] -> Char -> [[Figur]]
 boardComparator [] _ _ = []
 boardComparator _ [] _ = []
-boardComparator b (sb:sbs) c = [chooseBestBoard (filterByMove b (name (head sb))) c] ++ boardComparator b sbs c
+boardComparator b (sb:sbs) c = [chooseBestBoard y c] ++ boardComparator (drop (length y) b) sbs c
+                                where y = (filterByMove (take 100 b) (name (head sb)))
 
 calcSetup :: [Figur] -> Int -> ([[Figur]],[Int])
-calcSetup b x = (reverse newB,createLengthList newB x) where newB = createDepthBased [b] x
+calcSetup b x = (newB,createLengthList newB x) where newB = reverse (createDepthBased [b] x)
 
 calcDepthBased :: ([[Figur]],[Int]) -> Int -> ([[Figur]],[Int])
 calcDepthBased ([], _) _ = ([],[])

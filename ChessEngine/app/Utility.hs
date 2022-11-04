@@ -101,5 +101,5 @@ f3 = F 6 7 "queen" 'b'
 f4 = F 0 1 "pawn" 'w'
 f5 = F 7 0 "pawn" 'b'
 testB = testB1
-testB1 = [f0,f1,f2,f3]
+testB1 = [f0,f1,f2,f3,f4,f5]
 testB2 = [f0,f1,f2]

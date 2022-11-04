@@ -1,6 +1,7 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 import Language.Haskell.TH.Syntax (Lit(IntegerL))
+import Data.List
 import Utility
 
 starterBoard :: [Figur]
@@ -40,7 +41,45 @@ calculateDepthBased b 0 0 = colorSwap [chooseBestBoard b (color (head (head b)))
 calculateDepthBased b 0 1 = [chooseBestBoard b1 (color(head(head b1)))] where b1 = colorSwap b
 calculateDepthBased (b:bs) x y = calculateDepthBased ((calculateDepthBased (createBoardVariations b b) (x-1) 0) ++ (calculateDepthBased bs (x)) 0) 0 y
 
-chooseBestBoard :: [[Figur]] -> Char -> [Figur] -- Für Farbe anpassen
+createDepthBased :: [[Figur]] -> Int -> [[Figur]]
+createDephtBased [] _ = []
+createDepthBased b 1 = b ++ createAllBoardVariations b
+createDepthBased b x = b ++ createDepthBased (createAllBoardVariations b) (x-1)
+
+createLengthList :: [[Figur]] -> Int -> [Int]
+createLengthList [] _ = []
+createLengthList b 0 = [length (filterByLength b (length (name (head (head b))) `div` 4))]
+createLengthList b x = [length (filterByLength b val)] ++ createLengthList b (x-1)
+                        where val = length (name (head (head b))) `div` 4 + x 
+
+filterByLength :: [[Figur]] -> Int -> [[Figur]]
+filterByLength [] _ = []
+filterByLength (b:bs) x = boardCheck ++ filterByLength bs x
+                        where boardCheck | (length (name (head b))) == x*4 = [b]
+                                         | otherwise = []
+
+filterByMove :: [[Figur]] -> String -> [[Figur]]
+filterByMove [] _ = []
+filterByMove (b:bs) s = boardCheck ++ filterByMove bs s
+                where boardCheck | (s `isInfixOf` (name (head b))) = [b]
+                                 | otherwise = []
+
+boardComparator :: [[Figur]] -> [[Figur]] -> Char -> [[Figur]]
+boardComparator [] _ _ = []
+boardComparator _ [] _ = []
+boardComparator b (sb:sbs) c = [chooseBestBoard (filterByMove b (name (head sb))) c] ++ boardComparator b sbs c
+
+calcSetup :: [Figur] -> Int -> ([[Figur]],[Int])
+calcSetup b x = (reverse newB,createLengthList newB x) where newB = createDepthBased [b] x
+
+calcDepthBased :: ([[Figur]],[Int]) -> Int -> ([[Figur]],[Int])
+calcDepthBased ([], _) _ = ([],[])
+calcDepthBased (_, []) _ = ([],[])
+calcDepthBased (b,l) 1 = ([chooseBestBoard (init b) (color(head(head b)))], [])
+calcDepthBased (b,l) x = calcDepthBased (boardUpdate ++ (drop (l!!0+l!!1) b),(drop 1 l)) (x-1)
+                where boardUpdate = colorSwap (boardComparator (take (l!!0) b) (take (l!!1) (drop (l!!0) b)) (color(head(head b))))
+
+chooseBestBoard :: [[Figur]] -> Char -> [Figur]
 chooseBestBoard [] _ = []
 chooseBestBoard [x] _ = x
 chooseBestBoard (x:x2:xs) c | evaluateChessboard x c >= evaluateChessboard x2 c = chooseBestBoard (x:xs) c
@@ -82,7 +121,3 @@ figurCheck f m  | x f == convX (xalt m) && y f == yalt m = F (convX (xnew m)) (y
 cpuMove :: String -> Int -> String
 cpuMove s i = bestMove (head (calculateDepthBased b1 i 1)) i
         where b1 = [updateBoardAll starterBoard (convMoves s)]
-
-cpuMoveTest :: String -> Int -> String
-cpuMoveTest s i = bestMove (head (calculateDepthBased b1 i 1)) i
-         where b1 = [updateBoardAll testB(convMoves s)]

@@ -26,8 +26,11 @@ convMoves s = [convToMove (take 4 s)] ++ x
 convFromMove :: Move -> [Char]
 convFromMove (M a b c d) = [a] ++ [convToX (b-17)]++[c] ++ [convToX (d-17)]
 
-pawnMoves :: [[Int]]
-pawnMoves = [[0,1],[0,2],[1,1],[-1,1]] 
+pawnMovesW :: [[Int]]
+pawnMovesW = [[0,1],[0,2],[1,1],[-1,1]] 
+
+pawnMovesB :: [[Int]]
+pawnMovesB = [[0,-1],[0,-2],[1,-1],[-1,-1]] 
 
 knightMoves :: [[Int]]
 knightMoves = [[a,b] | a <- [-2,-1,1,2], b <- [-2,-1,1,2], a + b == -3 || a + b == -1 || a + b == 1 || a + b == 3]
@@ -74,23 +77,37 @@ validMove [] _ _ = False
 validMove b f move@(M x1 y1 x2 y2)
         |color f /= color (head b) = False
         |convX (x2) < 0 || convX (x2) > 7 || y2 < 0 || y2 > 7 = False
-        |isOccupied b (color (head b)) (convX x2) y2 = False 
+        |isOccupied b amZug (convX x2) y2 = False 
+        |(name f /= "knight") && (isBlocked b amZug (createCoordList move)) = False
+        -- |(name f == "pawn") = isDiagonalAndValid b f amZug move
         |otherwise = True
--- |isBlocked b (color (head b)) move = False
+        where amZug =  color (head b)
+
+isDiagonalAndValid :: [Figur] -> Figur -> Char -> Move -> Bool
+isDiagonalAndValid b f c (M x1 y1 x2 y2) = (x1 == x2) || isOccupied b tc (convX x2) y2 
+                        where tc | c == 'w' = 'b'
+                                 | otherwise = 'w'
 
 isOccupied :: [Figur] -> Char -> Int -> Int -> Bool
 isOccupied [] _ _ _ = False
 isOccupied (f:fs) c xn yn = (color f == c && x f == xn && y f == yn) || isOccupied fs c xn yn
 
---check for every field between every figure and the target field if there is a figure of the own color in the way
---chain is occupied on each square by dividing the elements of the tupel containing the positional difference with the highest value to get proper increments to check procedually
+isBlocked :: [Figur] -> Char -> [(Int,Int)] -> Bool
+isBlocked b c [] = False
+isBlocked b c (m:ms) = isOccupied b c (fst m) (snd m) || isBlocked b c (ms)
 
+createCoordList :: Move -> [(Int,Int)]
+createCoordList move@(M x1 y1 x2 y2) =  makeIncrementList (convX x1) y1 (fst t) (snd t)  where t = divideMove move
+
+makeIncrementList :: Int -> Int -> (Int,Int) -> Int -> [(Int,Int)]
+makeIncrementList x y t 1 = []
+makeIncrementList x y t i = tn : makeIncrementList (fst tn) (snd tn) t (i-1) where tn = ((x+fst t),(y+snd t))
 
 --divides a move into single steps
-divideMove :: Move -> (Int,Int)
-divideMove (M x1 y1 x2 y2) = (convX x2 - convX x1 `div` y ,  y2-y1 `div` y )        
-                        where y | convX x2 - convX x1 > y2-y1 = convX x2 - convX x1
-                                | otherwise = y2-y1
+divideMove :: Move -> ((Int,Int),Int)
+divideMove (M x1 y1 x2 y2) = (((convX x2 - convX x1) `div` y ,  (y2-y1) `div` y ),y)       
+                        where y | abs (convX x2 - convX x1) > abs (y2-y1) = abs(convX x2 - convX x1)
+                                | otherwise = abs(y2-y1)
 
 
 padString :: String -> String

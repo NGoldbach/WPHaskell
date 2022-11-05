@@ -22,12 +22,13 @@ makeMoveList b f (m:ms) = moveCheckResult ++ makeMoveList b f ms
 createBoardVariations :: [Figur] -> [Figur] -> [[Figur]]
 createBoardVariations _ [] = []
 createBoardVariations b (x:xs) = moveFigure b (makeMoveList b x moves) ++ createBoardVariations b xs
-                where moves | name x == "pawn" = pawnMoves
-                            | name x == "knight" = knightMoves
+                where moves | name x == "knight" = knightMoves
                             | name x == "rook" = rookMoves
                             | name x == "bishop" = bishopMoves
                             | name x == "queen" = queenMoves
                             | name x == "king" = kingMoves
+                            | (name x == "pawn") && (color x == 'w') = pawnMovesW
+                            | (name x == "pawn") && (color x == 'b') = pawnMovesB
                             | otherwise = []
 
 createAllBoardVariations :: [[Figur]] -> [[Figur]]

@@ -71,21 +71,31 @@ colorSwap (b:bs) = [y : tail b] ++ colorSwap bs
 
 validMove :: [Figur] -> Figur -> Move -> Bool
 validMove [] _ _ = False
-validMove b f (M x1 y1 x2 y2)
+validMove b f move@(M x1 y1 x2 y2)
         |color f /= color (head b) = False
         |convX (x2) < 0 || convX (x2) > 7 || y2 < 0 || y2 > 7 = False
         |isOccupied b (color (head b)) (convX x2) y2 = False 
         |otherwise = True
+-- |isBlocked b (color (head b)) move = False
 
 isOccupied :: [Figur] -> Char -> Int -> Int -> Bool
 isOccupied [] _ _ _ = False
 isOccupied (f:fs) c xn yn = (color f == c && x f == xn && y f == yn) || isOccupied fs c xn yn
 
+--check for every field between every figure and the target field if there is a figure of the own color in the way
+--chain is occupied on each square by dividing the elements of the tupel containing the positional difference with the highest value to get proper increments to check procedually
+
+
+--divides a move into single steps
+divideMove :: Move -> (Int,Int)
+divideMove (M x1 y1 x2 y2) = (convX x2 - convX x1 `div` y ,  y2-y1 `div` y )        
+                        where y | convX x2 - convX x1 > y2-y1 = convX x2 - convX x1
+                                | otherwise = y2-y1
+
+
 padString :: String -> String
 padString [] = []
 padString s = take 4 s ++ " " ++ padString (drop 4 s) 
-
---chain is occupied on each square by dividing the elements of the tupel containing the positional difference with the highest value to get proper increments to check procedually
 
 
 --Test Kram

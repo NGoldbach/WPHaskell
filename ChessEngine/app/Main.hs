@@ -72,7 +72,7 @@ calcSetup b x = (newB,createLengthList newB x) where newB = reverse (createDepth
 calcDepthBased :: ([[Figur]],[Int]) -> Int -> ([[Figur]],[Int])
 calcDepthBased ([], _) _ = ([],[])
 calcDepthBased (_, []) _ = ([],[])
-calcDepthBased (b,l) 1 = ([chooseBestBoard (init b) (color(head(head b)))], [])
+calcDepthBased (b,l) 1 = ([chooseBestBoard (init b) (color(head(head b)))], l)
 calcDepthBased (b,l) x = calcDepthBased (boardUpdate ++ (drop (l!!0+l!!1) b),(drop 1 l)) (x-1)
                 where boardUpdate = colorSwap (boardComparator (take (l!!0) b) (take (l!!1) (drop (l!!0) b)) (color(head(head b))))
 
@@ -83,7 +83,7 @@ chooseBestBoard (x:x2:xs) c | evaluateChessboard x c >= evaluateChessboard x2 c 
                             | otherwise = chooseBestBoard (x2:xs) c
 
 evaluateChessboard :: [Figur] -> Char -> Int
-evaluateChessboard [] _ = 0
+evaluateChessboard [] _ = -9999
 evaluateChessboard (x:xs) c = y + evaluateChessboard xs c
                             where y | name x == "pawn" = 1 * i
                                     | name x == "knight" = 3 * i

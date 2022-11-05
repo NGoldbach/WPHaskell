@@ -78,13 +78,15 @@ validMove b f move@(M x1 y1 x2 y2)
         |color f /= color (head b) = False
         |convX (x2) < 0 || convX (x2) > 7 || y2 < 0 || y2 > 7 = False
         |isOccupied b amZug (convX x2) y2 = False 
-        |(name f /= "knight") && (isBlocked b amZug (createCoordList move)) = False
-        -- |(name f == "pawn") = isDiagonalAndValid b f amZug move
+        |(name f /= "knight") && (isBlocked b (createCoordList move)) = False
+        |(name f == "pawn") && (isInvalidPawnMove b f amZug move) = False
+        -- |(name f == "knight") ||(name f == "bishop")||(name f == "rook") ||(name f == "queen") ||(name f == "king") = False
+        -- |(name f == "pawn") = False
         |otherwise = True
         where amZug =  color (head b)
 
-isDiagonalAndValid :: [Figur] -> Figur -> Char -> Move -> Bool
-isDiagonalAndValid b f c (M x1 y1 x2 y2) = (x1 == x2) || isOccupied b tc (convX x2) y2 
+isInvalidPawnMove :: [Figur] -> Figur -> Char -> Move -> Bool
+isInvalidPawnMove b f c (M x1 y1 x2 y2) = ((x1 /= x2) && (not (isOccupied b tc (convX x2) y2))) || ((x1 == x2) && (isOccupied b tc (convX x2) y2))
                         where tc | c == 'w' = 'b'
                                  | otherwise = 'w'
 
@@ -92,9 +94,9 @@ isOccupied :: [Figur] -> Char -> Int -> Int -> Bool
 isOccupied [] _ _ _ = False
 isOccupied (f:fs) c xn yn = (color f == c && x f == xn && y f == yn) || isOccupied fs c xn yn
 
-isBlocked :: [Figur] -> Char -> [(Int,Int)] -> Bool
-isBlocked b c [] = False
-isBlocked b c (m:ms) = isOccupied b c (fst m) (snd m) || isBlocked b c (ms)
+isBlocked :: [Figur] -> [(Int,Int)] -> Bool
+isBlocked b [] = False
+isBlocked b (m:ms) = isOccupied b 'w' (fst m) (snd m) || isOccupied b 'b' (fst m) (snd m) || isBlocked b (ms)
 
 createCoordList :: Move -> [(Int,Int)]
 createCoordList move@(M x1 y1 x2 y2) =  makeIncrementList (convX x1) y1 (fst t) (snd t)  where t = divideMove move
@@ -121,11 +123,11 @@ f0 = F (-1) (-1) "" 'w'
 f1 :: Figur
 f1 = F 5 5 "knight" 'w'
 f2 :: Figur
-f2 = F 0 0 "king" 'b'
+f2 = F 7 7 "king" 'b'
 f3 :: Figur
 f3 = F 6 7 "queen" 'b'
 f4 = F 0 1 "pawn" 'w'
-f5 = F 7 0 "pawn" 'b'
+f5 = F 0 2 "pawn" 'b'
 testB = testB1
-testB1 = [f0,f1,f2,f3,f4,f5]
+testB1 = [f0,f4,f5,f1,f2]
 testB2 = [f0,f1,f2]

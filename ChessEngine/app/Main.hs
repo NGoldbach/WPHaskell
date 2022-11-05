@@ -76,6 +76,22 @@ calcDepthBased (b,l) 1 = ([chooseBestBoard (init b) (color(head(head b)))], l)
 calcDepthBased (b,l) x = calcDepthBased (boardUpdate ++ (drop (l!!0+l!!1) b),(drop 1 l)) (x-1)
                 where boardUpdate = colorSwap (boardComparator (take (l!!0) b) (take (l!!1) (drop (l!!0) b)) (color(head(head b))))
 
+testIteration :: ([[Figur]],[Int]) -> ([[Figur]],[Int])
+testIteration (b,l) = (boardUpdate ++ (drop (l!!0+l!!1) b),(drop 1 l))
+        where boardUpdate = colorSwap (boardComparator (take (l!!0) b) (take (l!!1) (drop (l!!0) b)) (color(head(head b))))
+
+testIteration2 :: ([[Figur]],[Int]) -> ([[Figur]],[Int])
+testIteration2 (b,l) = (boardUpdate ++ (drop (420) b),(drop 1 l))
+                where boardUpdate = colorSwap (boardComparator (take 400 b) (take 20 (drop 400 b)) (color(head(head b))))
+
+pullMemory :: [[Figur]] -> [String]
+pullMemory [] = []
+pullMemory (b:bs) = name (head b) : pullMemory bs
+
+pullLength :: [[Figur]] -> [Int]
+pullLength [] = []
+pullLength (b:bs) = length b : pullLength bs
+
 chooseBestBoard :: [[Figur]] -> Char -> [Figur]
 chooseBestBoard [] _ = []
 chooseBestBoard [x] _ = x
@@ -83,7 +99,7 @@ chooseBestBoard (x:x2:xs) c | evaluateChessboard x c >= evaluateChessboard x2 c 
                             | otherwise = chooseBestBoard (x2:xs) c
 
 evaluateChessboard :: [Figur] -> Char -> Int
-evaluateChessboard [] _ = -9999
+evaluateChessboard [] _ = 0
 evaluateChessboard (x:xs) c = y + evaluateChessboard xs c
                             where y | name x == "pawn" = 1 * i
                                     | name x == "knight" = 3 * i

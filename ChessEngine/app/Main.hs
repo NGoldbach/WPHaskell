@@ -1,7 +1,6 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 import Language.Haskell.TH.Syntax (Lit(IntegerL))
-import Data.List
 import Utility
 
 starterBoard :: [Figur]
@@ -48,17 +47,7 @@ createLengthList b x = [y] ++ createLengthList (drop y b) (x-1)
                         where y = filterByLength b val
                                 where val = length (name (head (head b))) `div` 4
 
-filterByLength :: [[Figur]] -> Int -> Int
-filterByLength [] _ = 0
-filterByLength (b:bs) x = boardCheck + filterByLength bs x
-                        where boardCheck | (length (name (head b))) == x*4 = 1
-                                         | otherwise = 0
 
-filterByMove :: [[Figur]] -> String -> [[Figur]]
-filterByMove [] _ = []
-filterByMove (b:bs) s = boardCheck ++ filterByMove bs s
-                where boardCheck | (s `isInfixOf` (name (head b))) = [b]
-                                 | otherwise = []
 
 boardComparator :: [[Figur]] -> [[Figur]] -> Char -> [[Figur]]
 boardComparator [] _ _ = []
@@ -74,23 +63,7 @@ calcDepthBased ([], _) _ = ([],[])
 calcDepthBased (_, []) _ = ([],[])
 calcDepthBased (b,l) 1 = ([chooseBestBoard (init b) (color(head(head b)))], l)
 calcDepthBased (b,l) x = calcDepthBased (boardUpdate ++ (drop (l!!0+l!!1) b),(drop 1 l)) (x-1)
-                where boardUpdate = colorSwap (filter (not.null) (boardComparator (take (l!!0) b) (take (l!!1) (drop (l!!0) b)) (color(head(head b)))))
-
-testIteration :: ([[Figur]],[Int]) -> ([[Figur]],[Int])
-testIteration (b,l) = (boardUpdate ++ (drop (l!!0+l!!1) b),(drop 1 l))
-        where boardUpdate = colorSwap (boardComparator (take (l!!0) b) (take (l!!1) (drop (l!!0) b)) (color(head(head b))))
-
-testIteration2 :: ([[Figur]],[Int]) -> ([[Figur]],[Int])
-testIteration2 (b,l) = (boardUpdate ++ (drop (420) b),(drop 1 l))
-                where boardUpdate = colorSwap (boardComparator (take 400 b) (take 20 (drop 400 b)) (color(head(head b))))
-
-pullMemory :: [[Figur]] -> [String]
-pullMemory [] = []
-pullMemory (b:bs) = name (head b) : pullMemory bs
-
-pullLength :: [[Figur]] -> [Int]
-pullLength [] = []
-pullLength (b:bs) = length b : pullLength bs
+                where boardUpdate = colorSwap (boardComparator (take (l!!0) b) (take (l!!1) (drop (l!!0) b)) (color(head(head b))))
 
 chooseBestBoard :: [[Figur]] -> Char -> [Figur]
 chooseBestBoard [] _ = []
@@ -111,11 +84,13 @@ evaluateChessboard (x:xs) c = y + evaluateChessboard xs c
                                     where i | color x == c = -1
                                             | otherwise = 1
 
-bestMove :: [Figur] -> Int -> String
-bestMove b x = padString (reverse (take (x*4) (reverse (name (head b)))))
+getMovesFromMemory :: [Figur] -> Int -> String
+getMovesFromMemory b x = padString (reverse (take (x*4) (reverse (name (head b)))))
 
 updateBoard :: [Figur] -> Move -> [Figur]
 updateBoard [] _ = []
+updateBoard b CastleLong = [] -- E0G0 und flip color in memory , bewege king, bewege rook, rochade figur außerhalb des boards mit punktzahl
+updateBoard b CastleShort = []
 updateBoard (x:xs) y = s  ++ updateBoard xs y 
                             where s | figurCheck x y == F2 = [] 
                                     | otherwise = [figurCheck x y] 
@@ -133,7 +108,7 @@ figurCheck f m  | x f == convX (xalt m) && y f == yalt m = F (convX (xnew m)) (y
                                 | otherwise = 'w'
 
 cpuMove :: String -> Int -> String
-cpuMove s i = bestMove calcResult i
+cpuMove s i = getMovesFromMemory calcResult i
         where calcResult = head(fst (calcDepthBased (calcSetup b1 i) i))
                 where b1 = updateBoardAll starterBoard (convMoves s)
 
@@ -150,11 +125,6 @@ main = do
 
 readInt :: String -> Int
 readInt = read
-
-bs = calcSetup starterBoard 3                                      
-b1 = testIteration bs                                              
-t1 = (take 400 (fst b1))
-t2 = (take 20 (drop 400(fst b1)))
 
 --boardComparator t1 t2 'w' zeigt die leeren Listen. filter (not.null) entfernt die aktuell. jedoch sollten sie erst garnicht existieren, muss gecheckt werden.
 

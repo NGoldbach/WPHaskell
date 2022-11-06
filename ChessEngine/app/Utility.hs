@@ -1,8 +1,9 @@
 module Utility where
 import Data.Char(digitToInt)
+import Data.List ( isInfixOf )
 
 data Figur = F {x::Int, y::Int, name::String, color::Char} | F2 {} deriving (Show, Eq, Ord)
-data Move = M {xalt::Char, yalt::Int, xnew::Char, ynew::Int} deriving Show 
+data Move = M {xalt::Char, yalt::Int, xnew::Char, ynew::Int} | CastleShort | CastleLong deriving Show 
 
 convX :: Char -> Int
 convX c = fromEnum c-65
@@ -80,10 +81,20 @@ validMove b f move@(M x1 y1 x2 y2)
         |isOccupied b amZug (convX x2) y2 = False 
         |(name f /= "knight") && (isBlocked b (createCoordList move)) = False
         |(name f == "pawn") && (isInvalidPawnMove b f amZug move) = False
-        -- |(name f == "knight") ||(name f == "bishop")||(name f == "rook") ||(name f == "queen") ||(name f == "king") = False
-        -- |(name f == "pawn") = False
         |otherwise = True
         where amZug =  color (head b)
+
+castleCheck :: [Figur] -> String -> Char -> [Move] -- Hässlichste Funktion
+castleCheck b moves c 
+                        | hasMoved moves (if (c == 'w') then "E0" else "E7") = [] 
+                        | ((hasMoved moves (if (c == 'w') then "A0" else "A7")) && (hasMoved moves (if (c == 'w') then "H0" else "H7"))) || ((isBlocked b (createCoordList (M 'A' v 'E' v))) && (isBlocked b (createCoordList (M 'H' v 'E' v)))) = [] 
+                        | (not (hasMoved moves (if (c == 'w') then "A0" else "A7"))) && (not (isBlocked b (createCoordList (M 'A' v 'E' v)))) && ((hasMoved moves (if (c == 'w') then "H0" else "H7")) || (isBlocked b (createCoordList (M 'H' v 'E' v)))) = [CastleLong]
+                        | (not (hasMoved moves (if (c == 'w') then "H0" else "H7"))) && (not (isBlocked b (createCoordList (M 'H' v 'E' v)))) && (hasMoved moves (if (c == 'w') then "A0" else "A7") || (isBlocked b (createCoordList (M 'A' v 'E' v)))) = [CastleShort]
+                        | otherwise = [CastleLong, CastleShort]
+                        where v = if (c == 'w') then 0 else 7 
+            
+hasMoved :: String -> String -> Bool
+hasMoved moves pos = pos `isInfixOf` moves
 
 isInvalidPawnMove :: [Figur] -> Figur -> Char -> Move -> Bool
 isInvalidPawnMove b f c (M x1 y1 x2 y2) = ((x1 /= x2) && (not (isOccupied b tc (convX x2) y2))) || ((x1 == x2) && (isOccupied b tc (convX x2) y2))
@@ -131,3 +142,26 @@ f5 = F 0 2 "pawn" 'b'
 testB = testB1
 testB1 = [f0,f4,f5,f1,f2]
 testB2 = [f0,f1,f2]
+
+
+
+pullMemory :: [[Figur]] -> [String]
+pullMemory [] = []
+pullMemory (b:bs) = name (head b) : pullMemory bs
+
+pullLength :: [[Figur]] -> [Int]
+pullLength [] = []
+pullLength (b:bs) = length b : pullLength bs
+
+
+filterByLength :: [[Figur]] -> Int -> Int
+filterByLength [] _ = 0
+filterByLength (b:bs) x = boardCheck + filterByLength bs x
+                        where boardCheck | (length (name (head b))) == x*4 = 1
+                                         | otherwise = 0
+
+filterByMove :: [[Figur]] -> String -> [[Figur]]
+filterByMove [] _ = []
+filterByMove (b:bs) s = boardCheck ++ filterByMove bs s
+                where boardCheck | (s == (take (length s)(name (head b)))) = [b]
+                                 | otherwise = []

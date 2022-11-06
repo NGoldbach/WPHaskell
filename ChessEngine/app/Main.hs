@@ -63,7 +63,7 @@ filterByMove (b:bs) s = boardCheck ++ filterByMove bs s
 boardComparator :: [[Figur]] -> [[Figur]] -> Char -> [[Figur]]
 boardComparator [] _ _ = []
 boardComparator _ [] _ = []
-boardComparator b (sb:sbs) c = [chooseBestBoard y c] ++ boardComparator (drop (length y) b) sbs c
+boardComparator b (sb:sbs) c = chooseBestBoard y c : boardComparator (drop (length y) b) sbs c
                                 where y = (filterByMove (take 100 b) (name (head sb)))
 
 calcSetup :: [Figur] -> Int -> ([[Figur]],[Int])
@@ -74,7 +74,7 @@ calcDepthBased ([], _) _ = ([],[])
 calcDepthBased (_, []) _ = ([],[])
 calcDepthBased (b,l) 1 = ([chooseBestBoard (init b) (color(head(head b)))], l)
 calcDepthBased (b,l) x = calcDepthBased (boardUpdate ++ (drop (l!!0+l!!1) b),(drop 1 l)) (x-1)
-                where boardUpdate = colorSwap (boardComparator (take (l!!0) b) (take (l!!1) (drop (l!!0) b)) (color(head(head b))))
+                where boardUpdate = colorSwap (filter (not.null) (boardComparator (take (l!!0) b) (take (l!!1) (drop (l!!0) b)) (color(head(head b)))))
 
 testIteration :: ([[Figur]],[Int]) -> ([[Figur]],[Int])
 testIteration (b,l) = (boardUpdate ++ (drop (l!!0+l!!1) b),(drop 1 l))
@@ -106,6 +106,7 @@ evaluateChessboard (x:xs) c = y + evaluateChessboard xs c
                                     | name x == "bishop" = 3 * i
                                     | name x == "rook" = 5 * i
                                     | name x == "queen" = 9 * i
+                                    | name x == "king" = 1000 * i
                                     | otherwise = 0
                                     where i | color x == c = -1
                                             | otherwise = 1
@@ -150,7 +151,12 @@ main = do
 readInt :: String -> Int
 readInt = read
 
+bs = calcSetup starterBoard 3                                      
+b1 = testIteration bs                                              
+t1 = (take 400 (fst b1))
+t2 = (take 20 (drop 400(fst b1)))
 
+--boardComparator t1 t2 'w' zeigt die leeren Listen. filter (not.null) entfernt die aktuell. jedoch sollten sie erst garnicht existieren, muss gecheckt werden.
 
 
 -- calculateDepthBased :: [[Figur]] -> Int -> Int -> [[Figur]] --Funktioniert für Tiefe 0,1,2, aber nicht für höher? Muss bearbeitet werden, immernoch falsch

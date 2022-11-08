@@ -22,7 +22,7 @@ makeMoveList b f (m:ms) = moveCheckResult ++ makeMoveList b f ms
 createBoardVariations :: [Figur] -> [Figur] -> [[Figur]]
 createBoardVariations _ [] = []
 createBoardVariations b (x:xs) = moveFigure b moveList ++ createBoardVariations b xs
-        where moveList = if (y x == (-1)) then [] else (makeMoveList b x moves) --Specialmoves für y x (-1) einfügen
+        where moveList = if (y x == (-1)) then (specialMoves b) else (makeMoveList b x moves) --Specialmoves für y x (-1) einfügen
                 where moves | name x == "knight" = knightMoves
                             | name x == "rook" = rookMoves
                             | name x == "bishop" = bishopMoves

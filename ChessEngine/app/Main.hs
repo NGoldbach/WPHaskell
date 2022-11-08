@@ -21,7 +21,8 @@ makeMoveList b f (m:ms) = moveCheckResult ++ makeMoveList b f ms
 
 createBoardVariations :: [Figur] -> [Figur] -> [[Figur]]
 createBoardVariations _ [] = []
-createBoardVariations b (x:xs) = moveFigure b (makeMoveList b x moves) ++ createBoardVariations b xs
+createBoardVariations b (x:xs) = moveFigure b moveList ++ createBoardVariations b xs
+        where moveList = if (y x == (-1)) then [] else (makeMoveList b x moves) --Specialmoves für y x (-1) einfügen
                 where moves | name x == "knight" = knightMoves
                             | name x == "rook" = rookMoves
                             | name x == "bishop" = bishopMoves
@@ -81,7 +82,7 @@ evaluateChessboard (x:xs) c = y + evaluateChessboard xs c
                                     | name x == "rook" = 5 * i
                                     | name x == "queen" = 9 * i
                                     | name x == "king" = 1000 * i
-                                    | name x == "castle" = 2 * i
+                                    | name x == "castle" = 0.8 * i
                                     | otherwise = 0
                                     where i | color x == c = -1
                                             | otherwise = 1
@@ -142,18 +143,4 @@ turnLoop s = do
         print("Chosen follow-up: "++adjustedResult)
         turnLoop allTurns
 
-readInt :: String -> Int
-readInt = read
 
-adjustedTurns :: String -> Int -> String
-adjustedTurns [] _ = []
-adjustedTurns (c:cs) v = checkedChar : adjustedTurns cs v
-        where checkedChar | (c < '0' || c > '8') = c
-                          | otherwise = toEnum ((fromEnum c) + v)
-
-
--- calculateDepthBased :: [[Figur]] -> Int -> Int -> [[Figur]] --Funktioniert für Tiefe 0,1,2, aber nicht für höher? Muss bearbeitet werden, immernoch falsch
--- calculateDepthBased [] _ _ = []
--- calculateDepthBased b 0 0 = colorSwap [chooseBestBoard b (color (head (head b)))] 
--- calculateDepthBased b 0 1 = [chooseBestBoard b1 (color(head(head b1)))] where b1 = colorSwap b
--- calculateDepthBased (b:bs) x y = calculateDepthBased ((calculateDepthBased (createBoardVariations b b) (x-1) 0) ++ (calculateDepthBased bs (x)) 0) 0 y

@@ -153,3 +153,20 @@ filterByMove [] _ = []
 filterByMove (b:bs) s = boardCheck ++ filterByMove bs s
                 where boardCheck | (s == (take (length s)(name (head b)))) = [b]
                                  | otherwise = []
+
+adjustedTurns :: String -> Int -> String
+adjustedTurns [] _ = []
+adjustedTurns (c:cs) v = checkedChar : adjustedTurns cs v
+                where checkedChar       | (c < '0' || c > '8') = c
+                                        | otherwise = toEnum ((fromEnum c) + v)
+
+readInt :: String -> Int
+readInt = read
+
+
+-- calculateDepthBased :: [[Figur]] -> Int -> Int -> [[Figur]] --Funktioniert für Tiefe 0,1,2, aber nicht für höher? Muss bearbeitet werden, immernoch falsch
+-- calculateDepthBased [] _ _ = []
+-- calculateDepthBased b 0 0 = colorSwap [chooseBestBoard b (color (head (head b)))] 
+-- calculateDepthBased b 0 1 = [chooseBestBoard b1 (color(head(head b1)))] where b1 = colorSwap b
+-- calculateDepthBased (b:bs) x y = calculateDepthBased ((calculateDepthBased (createBoardVariations b b) (x-1) 0) ++ (calculateDepthBased bs (x)) 0) 0 y
+                                 

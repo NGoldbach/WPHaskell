@@ -71,7 +71,7 @@ chooseBestBoard [x] _ = x
 chooseBestBoard (x:x2:xs) c | evaluateChessboard x c >= evaluateChessboard x2 c = chooseBestBoard (x:xs) c
                             | otherwise = chooseBestBoard (x2:xs) c
 
-evaluateChessboard :: [Figur] -> Char -> Int
+evaluateChessboard :: [Figur] -> Char -> Double
 evaluateChessboard [] _ = 0
 evaluateChessboard (x:xs) c = y + evaluateChessboard xs c
                             where y | name x == "pawn" = 1 * i
@@ -80,6 +80,7 @@ evaluateChessboard (x:xs) c = y + evaluateChessboard xs c
                                     | name x == "rook" = 5 * i
                                     | name x == "queen" = 9 * i
                                     | name x == "king" = 1000 * i
+                                    | name x == "castle" = 0.5 * i
                                     | otherwise = 0
                                     where i | color x == c = -1
                                             | otherwise = 1
@@ -112,22 +113,24 @@ cpuMove s i = getMovesFromMemory calcResult i
         where calcResult = head(fst (calcDepthBased (calcSetup b1 i) i))
                 where b1 = updateBoardAll starterBoard (convMoves s)
 
+main :: IO b
 main = do
-        putStrLn "Enter All Previous Turns"
+        turnLoop ""
+
+turnLoop :: [Char] -> IO b
+turnLoop s = do
+        putStr "\nEnter new moves: "
         turns <- getLine
-        putStrLn "Enter Depth"
+        let allTurns = if (s /= "") then (s ++ " " ++ turns) else (turns)
+        putStr "\nEnter Depth: "
         depth <- getLine
         let x = (readInt depth)
         putStrLn ""
-        print((cpuMove turns x))
-        putStrLn "\nNext Turn:"
-        main
+        print("Chosen follow-up: "++(cpuMove allTurns x))
+        turnLoop allTurns
 
 readInt :: String -> Int
 readInt = read
-
---boardComparator t1 t2 'w' zeigt die leeren Listen. filter (not.null) entfernt die aktuell. jedoch sollten sie erst garnicht existieren, muss gecheckt werden.
-
 
 -- calculateDepthBased :: [[Figur]] -> Int -> Int -> [[Figur]] --Funktioniert für Tiefe 0,1,2, aber nicht für höher? Muss bearbeitet werden, immernoch falsch
 -- calculateDepthBased [] _ _ = []

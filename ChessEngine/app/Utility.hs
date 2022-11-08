@@ -93,6 +93,9 @@ castleCheck b moves c
                         | otherwise = [CastleLong, CastleShort]
                         where v = if (c == 'w') then 0 else 7 
             
+specialMoves :: [Figur] -> [Move]
+specialMoves b = castleCheck b (name memory) (color memory) where memory = head b
+
 hasMoved :: String -> String -> Bool
 hasMoved moves pos = pos `isInfixOf` moves
 

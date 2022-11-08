@@ -97,7 +97,7 @@ hasMoved :: String -> String -> Bool
 hasMoved moves pos = pos `isInfixOf` moves
 
 isInvalidPawnMove :: [Figur] -> Figur -> Char -> Move -> Bool
-isInvalidPawnMove b f c (M x1 y1 x2 y2) = ((x1 /= x2) && (not (isOccupied b tc (convX x2) y2))) || ((x1 == x2) && (isOccupied b tc (convX x2) y2))
+isInvalidPawnMove b f c (M x1 y1 x2 y2) = ((x1 /= x2) && (not (isOccupied b tc (convX x2) y2))) || ((x1 == x2) && (isOccupied b tc (convX x2) y2)) || ((abs (y1-y2) == 2) && ((y1 /= 0 && c == 'w')||(y1 /= 7 && c == 'b')))
                         where tc | c == 'w' = 'b'
                                  | otherwise = 'w'
 
@@ -127,23 +127,11 @@ padString :: String -> String
 padString [] = []
 padString s = take 4 s ++ " " ++ padString (drop 4 s) 
 
-
---Test Kram
-f0 :: Figur
-f0 = F (-1) (-1) "" 'w'
-f1 :: Figur
-f1 = F 5 5 "knight" 'w'
-f2 :: Figur
-f2 = F 7 7 "king" 'b'
-f3 :: Figur
-f3 = F 6 7 "queen" 'b'
-f4 = F 0 1 "pawn" 'w'
-f5 = F 0 2 "pawn" 'b'
-testB = testB1
-testB1 = [f0,f4,f5,f1,f2]
-testB2 = [f0,f1,f2]
-
-
+trimString :: [Char] -> [Char]
+trimString [] = []
+trimString (c:cs) = y ++ trimString cs 
+        where y | c == ' ' = []
+                | otherwise = [c] 
 
 pullMemory :: [[Figur]] -> [String]
 pullMemory [] = []

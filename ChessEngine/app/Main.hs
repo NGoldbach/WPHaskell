@@ -2,6 +2,7 @@
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 import Language.Haskell.TH.Syntax (Lit(IntegerL))
 import Utility
+import Data.List (isInfixOf)
 
 starterBoard :: [Figur]
 starterBoard = [F (-1) (-1) "" 'w'] ++ createFigures 'w' ++ createFigures 'b'
@@ -80,7 +81,7 @@ evaluateChessboard (x:xs) c = y + evaluateChessboard xs c
                                     | name x == "rook" = 5 * i
                                     | name x == "queen" = 9 * i
                                     | name x == "king" = 1000 * i
-                                    | name x == "castle" = 0.5 * i
+                                    | name x == "castle" = 2 * i
                                     | otherwise = 0
                                     where i | color x == c = -1
                                             | otherwise = 1
@@ -109,9 +110,18 @@ figurCheck f m  | x f == convX (xalt m) && y f == yalt m = F (convX (xnew m)) (y
                                 | otherwise = 'w'
 
 cpuMove :: String -> Int -> String
-cpuMove s i = getMovesFromMemory calcResult i
+cpuMove s i = if (length (s) <= 20) then openingBook s else (getMovesFromMemory calcResult i)
         where calcResult = head(fst (calcDepthBased (calcSetup b1 i) i))
                 where b1 = updateBoardAll starterBoard (convMoves s)
+
+openingBook :: String -> String
+openingBook s | turnNumber == 1 = "G1G2"
+              | turnNumber == 2 = "G6G5"
+              | turnNumber == 3 = "F0G1"
+              | turnNumber == 4 = if ("C0B1" `isInfixOf` trimString s) then "G7F5" else "F7G6"
+              | turnNumber == 5 = if (("E4E3" `isInfixOf` trimString s) || ("G4G3" `isInfixOf` trimString s)) then "E1E2" else "G0F2"
+              | otherwise = "You shouldn't read this."
+        where turnNumber = ((length (trimString s)) `div` 4) + 1
 
 main :: IO b
 main = do
@@ -119,18 +129,28 @@ main = do
 
 turnLoop :: [Char] -> IO b
 turnLoop s = do
-        putStr "\nEnter new moves: "
+        putStrLn "\nEnter new moves: "
         turns <- getLine
         let allTurns = if (s /= "") then (s ++ " " ++ turns) else (turns)
-        putStr "\nEnter Depth: "
+        putStrLn "\nEnter Depth: "
         depth <- getLine
         let x = (readInt depth)
         putStrLn ""
-        print("Chosen follow-up: "++(cpuMove allTurns x))
+        let adjustedInput = adjustedTurns allTurns (-1)
+        let result = cpuMove adjustedInput x
+        let adjustedResult = adjustedTurns result 1
+        print("Chosen follow-up: "++adjustedResult)
         turnLoop allTurns
 
 readInt :: String -> Int
 readInt = read
+
+adjustedTurns :: String -> Int -> String
+adjustedTurns [] _ = []
+adjustedTurns (c:cs) v = checkedChar : adjustedTurns cs v
+        where checkedChar | (c < '0' || c > '8') = c
+                          | otherwise = toEnum ((fromEnum c) + v)
+
 
 -- calculateDepthBased :: [[Figur]] -> Int -> Int -> [[Figur]] --Funktioniert für Tiefe 0,1,2, aber nicht für höher? Muss bearbeitet werden, immernoch falsch
 -- calculateDepthBased [] _ _ = []

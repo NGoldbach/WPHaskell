@@ -1,5 +1,5 @@
 module Utility where
-import Data.Char(digitToInt)
+import Data.Char(digitToInt, isDigit)
 import Data.List ( isInfixOf )
 
 data Figur = F {x::Int, y::Int, name::String, color::Char} | F2 {} deriving (Show, Eq, Ord)
@@ -13,10 +13,14 @@ convToX x =  toEnum (x + 65)
 convToMove :: String -> Move
 convToMove s = 
             let     a = s!!0
-                    b = digitToInt (s!!1)
+                    b = if(isDigit (s!!1)) then digitToInt (s!!1) else 0
                     c = s!!2
-                    d = digitToInt (s!!3)
-            in M a b c d
+                    d = if(isDigit (s!!1)) then digitToInt (s!!3) else 0
+            in if(isDigit (s!!1)) then M a b c d else convSpecialMove s
+
+convSpecialMove :: String -> Move
+convSpecialMove s | s == "CLC0" || s == "CLC7" = CastleLong
+                  | s == "CLG0" || s == "CLG7" = CastleShort
 
 convMoves :: String -> [Move]
 convMoves [] = []
@@ -47,6 +51,12 @@ rookMoves = [[a,b] | a <- [-7..7], b <- [-7..7], (a == 0) /= (b == 0)]
 
 queenMoves :: [[Int]]
 queenMoves = bishopMoves ++ rookMoves
+
+defPawnPositionsW :: [(Int,Int)]
+defPawnPositionsW = [(5,1),(6,2),(7,1)]
+
+defPawnPositionsB :: [(Int,Int)]
+defPawnPositionsB = [(5,6),(6,5),(7,6)]
 
 createpawns :: Char -> [Figur]
 createpawns c = [F x y "pawn" c | x <- [0..7]]
@@ -166,6 +176,9 @@ adjustedTurns (c:cs) v = checkedChar : adjustedTurns cs v
 readInt :: String -> Int
 readInt = read
 
+turnColor :: Char -> Char
+turnColor c | c == 'w' = 'b'
+            | otherwise = 'w'
 
 -- calculateDepthBased :: [[Figur]] -> Int -> Int -> [[Figur]] --Funktioniert für Tiefe 0,1,2, aber nicht für höher? Muss bearbeitet werden, immernoch falsch
 -- calculateDepthBased [] _ _ = []

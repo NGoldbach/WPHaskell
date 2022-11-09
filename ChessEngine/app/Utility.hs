@@ -95,19 +95,22 @@ validMove b f move@(M x1 y1 x2 y2)
         where amZug =  color (head b)
 
 castleCheck :: [Figur] -> String -> Char -> [Move] -- Hässlichste Funktion
-castleCheck b moves c 
-                        | hasMoved moves (if (c == 'w') then "E0" else "E7") = [] 
-                        | ((hasMoved moves (if (c == 'w') then "A0" else "A7")) && (hasMoved moves (if (c == 'w') then "H0" else "H7"))) || ((isBlocked b (createCoordList (M 'A' v 'E' v))) && (isBlocked b (createCoordList (M 'H' v 'E' v)))) = [] 
-                        | (not (hasMoved moves (if (c == 'w') then "A0" else "A7"))) && (not (isBlocked b (createCoordList (M 'A' v 'E' v)))) && ((hasMoved moves (if (c == 'w') then "H0" else "H7")) || (isBlocked b (createCoordList (M 'H' v 'E' v)))) = [CastleLong]
-                        | (not (hasMoved moves (if (c == 'w') then "H0" else "H7"))) && (not (isBlocked b (createCoordList (M 'H' v 'E' v)))) && (hasMoved moves (if (c == 'w') then "A0" else "A7") || (isBlocked b (createCoordList (M 'A' v 'E' v)))) = [CastleShort]
+castleCheck b m c 
+                        | hasMoved m (if (c == 'w') then "E0" else "E7") = [] 
+                        | rookUnavailable b m c 0 && rookUnavailable b m c 1 = [] 
+                        | not (rookUnavailable b m c 0) && rookUnavailable b m c 1 = [CastleLong]
+                        | rookUnavailable b m c 0 &&  not (rookUnavailable b m c 1) = [CastleShort]
                         | otherwise = [CastleLong, CastleShort]
-                        where v = if (c == 'w') then 0 else 7 
             
 specialMoves :: [Figur] -> [Move]
 specialMoves b = castleCheck b (name memory) (color memory) where memory = head b
 
 hasMoved :: String -> String -> Bool
 hasMoved moves pos = pos `isInfixOf` moves
+
+rookUnavailable :: [Figur] -> String -> Char -> Int -> Bool
+rookUnavailable b m c 0 = hasMoved  m (if (c == 'w') then "A0" else "A7") || isBlocked b (createCoordList (M 'A' v 'E' v)) where v = if (c == 'w') then 0 else 7
+rookUnavailable b m c 1 = hasMoved  m (if (c == 'w') then "H0" else "H7") || isBlocked b (createCoordList (M 'H' v 'E' v)) where v = if (c == 'w') then 0 else 7
 
 isInvalidPawnMove :: [Figur] -> Figur -> Char -> Move -> Bool
 isInvalidPawnMove b f c (M x1 y1 x2 y2) = ((x1 /= x2) && (not (isOccupied b tc (convX x2) y2))) || ((x1 == x2) && (isOccupied b tc (convX x2) y2)) || ((abs (y1-y2) == 2) && ((y1 /= 0 && c == 'w')||(y1 /= 7 && c == 'b')))
@@ -190,6 +193,9 @@ f3 = F 4 1 "pawn" 'b'
 
 f4 = F 5 1 "pawn" 'b'
 testB = [f0,f1,f2,f3,f4]
+
+
+testString = adjustedTurns "D2D4 G7G6 E2E4 F8G7 C2C4 B8C6 G1F3 G7H6 C1H6 G8H6 D1C1 H6G8 B1C3 B7B6 C1G5 E7E6 E4E5 D8G5 F3G5 H7H6 F1D3 H6G5 A1D1 D7D6 D3E4 D6D5 C4D5 C6B4 CLG1 E6D5 C3D5 B4D5 E4D5 C8E6 D5A8" (-1)
 -- calculateDepthBased :: [[Figur]] -> Int -> Int -> [[Figur]] --Funktioniert für Tiefe 0,1,2, aber nicht für höher? Muss bearbeitet werden, immernoch falsch
 -- calculateDepthBased [] _ _ = []
 -- calculateDepthBased b 0 0 = colorSwap [chooseBestBoard b (color (head (head b)))] 

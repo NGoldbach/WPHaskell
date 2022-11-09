@@ -3,10 +3,7 @@
 import Language.Haskell.TH.Syntax (Lit(IntegerL))
 import Utility
 import Data.List (isInfixOf)
-<<<<<<< HEAD
 import GHC.Float (int2Double)
-=======
->>>>>>> 058c155c124b7e9069e5f39e553069b478deb897
 
 starterBoard :: [Figur]
 starterBoard = [F (-1) (-1) "" 'w'] ++ createFigures 'w' ++ createFigures 'b'
@@ -80,46 +77,30 @@ chooseBestBoard (x:x2:xs) c | evaluateChessboard x c >= evaluateChessboard x2 c 
 evaluateChessboard :: [Figur] -> Char -> Double
 evaluateChessboard [] _ = 0
 evaluateChessboard (x:xs) c = y + evaluateChessboard xs c
-<<<<<<< HEAD
                             where y | name x == "pawn" = (1+pawnEvaluation x) * i
-=======
-                            where y | name x == "pawn" = 1 * i
->>>>>>> 058c155c124b7e9069e5f39e553069b478deb897
                                     | name x == "knight" = 3 * i
                                     | name x == "bishop" = 3 * i
                                     | name x == "rook" = 5 * i
                                     | name x == "queen" = 9 * i
                                     | name x == "king" = 1000 * i
-<<<<<<< HEAD
                                     | name x == "castle" = 2 * i
-=======
-                                    | name x == "castle" = 0.8 * i
->>>>>>> 058c155c124b7e9069e5f39e553069b478deb897
                                     | otherwise = 0
                                     where i | color x == c = -1
                                             | otherwise = 1
 
-<<<<<<< HEAD
 pawnEvaluation :: Figur -> Double
 pawnEvaluation p | color p == 'w' && (x p, y p) `elem` defPawnPositionsW = 0.5
                  | color p == 'b' && (x p, y p) `elem` defPawnPositionsB = 0.5
                  | color p == 'w' = int2Double (x p) * 0.05
                  | otherwise = int2Double (7-x p) * 0.05 
 
-=======
->>>>>>> 058c155c124b7e9069e5f39e553069b478deb897
 getMovesFromMemory :: [Figur] -> Int -> String
 getMovesFromMemory b x = padString (reverse (take (x*4) (reverse (name (head b)))))
 
 updateBoard :: [Figur] -> Move -> [Figur]
 updateBoard [] _ = []
-<<<<<<< HEAD
 updateBoard b CastleLong = castlingFunc b True (color (head b)) yPos where yPos =  if (color (head b) == 'w') then 0 else 7
 updateBoard b CastleShort = castlingFunc b False (color (head b)) yPos where yPos =  if (color (head b) == 'w') then 0 else 7
-=======
-updateBoard b CastleLong = [] -- E0G0 und flip color in memory , bewege king, bewege rook, rochade figur außerhalb des boards mit punktzahl
-updateBoard b CastleShort = []
->>>>>>> 058c155c124b7e9069e5f39e553069b478deb897
 updateBoard (x:xs) y = s  ++ updateBoard xs y 
                             where s | figurCheck x y == F2 = [] 
                                     | otherwise = [figurCheck x y] 
@@ -131,7 +112,6 @@ updateBoardAll f (x:xs) = updateBoardAll (updateBoard f x) xs
 figurCheck :: Figur -> Move -> Figur
 figurCheck f m  | x f == convX (xalt m) && y f == yalt m = F (convX (xnew m)) (ynew m) (name f) (color f) 
                 | x f == convX (xnew m) && y f == ynew m = F2 
-<<<<<<< HEAD
                 | x f == -1 = F (x f) (y f) (name f++convFromMove m) (turnColor (color f))
                 | otherwise = f
 
@@ -147,12 +127,6 @@ castlingFunc (f:fs) long c num = newFigur : castlingFunc fs long c num
                                | otherwise = f
                                where yChar | c == 'w' = '0'
                                            | otherwise = '7'
-=======
-                | x f == -1 = F (x f) (y f) (name f++convFromMove m) (turnColor)
-                | otherwise = f
-                where turnColor | color f == 'w' = 'b'
-                                | otherwise = 'w'
->>>>>>> 058c155c124b7e9069e5f39e553069b478deb897
 
 cpuMove :: String -> Int -> String
 cpuMove s i = if (length (s) <= 20) then openingBook s else (getMovesFromMemory calcResult i)

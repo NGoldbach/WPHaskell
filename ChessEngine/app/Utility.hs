@@ -180,6 +180,16 @@ turnColor :: Char -> Char
 turnColor c | c == 'w' = 'b'
             | otherwise = 'w'
 
+f0 = F 1 1 "pawn" 'w'
+
+f1 = F 2 1 "pawn" 'w'
+
+f2 = F 3 1 "pawn" 'w'
+
+f3 = F 4 1 "pawn" 'b'
+
+f4 = F 5 1 "pawn" 'b'
+testB = [f0,f1,f2,f3,f4]
 -- calculateDepthBased :: [[Figur]] -> Int -> Int -> [[Figur]] --Funktioniert für Tiefe 0,1,2, aber nicht für höher? Muss bearbeitet werden, immernoch falsch
 -- calculateDepthBased [] _ _ = []
 -- calculateDepthBased b 0 0 = colorSwap [chooseBestBoard b (color (head (head b)))] 

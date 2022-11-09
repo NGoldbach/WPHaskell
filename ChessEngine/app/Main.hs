@@ -1,5 +1,3 @@
-{-# LANGUAGE InstanceSigs #-}
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 import Language.Haskell.TH.Syntax (Lit(IntegerL))
 import Utility
 import Data.List (isInfixOf)
@@ -71,31 +69,63 @@ calcDepthBased (b,l) x = calcDepthBased (boardUpdate ++ (drop (l!!0+l!!1) b),(dr
 chooseBestBoard :: [[Figur]] -> Char -> [Figur]
 chooseBestBoard [] _ = []
 chooseBestBoard [x] _ = x
-chooseBestBoard (x:x2:xs) c | evaluateChessboard x c >= evaluateChessboard x2 c = chooseBestBoard (x:xs) c
+chooseBestBoard (x:x2:xs) c | (evaluateChessboard x c + boardQuotient x c 0 0) >= (evaluateChessboard x2 c+boardQuotient x2 c 0 0) = chooseBestBoard (x:xs) c
                             | otherwise = chooseBestBoard (x2:xs) c
 
 evaluateChessboard :: [Figur] -> Char -> Double
 evaluateChessboard [] _ = 0
 evaluateChessboard (x:xs) c = y + evaluateChessboard xs c
                             where y | name x == "pawn" = (1+pawnEvaluation x) * i
-                                    | name x == "knight" = 3 * i
-                                    | name x == "bishop" = 3 * i
-                                    | name x == "rook" = 5 * i
-                                    | name x == "queen" = 9 * i
+                                    | name x == "knight" = (3+centerEvaluation x+aggressionEvaluation x) * i
+                                    | name x == "bishop" = (3+centerEvaluation x+aggressionEvaluation x + longDiagonal x) * i
+                                    | name x == "rook" = (5+centerEvaluation x+aggressionEvaluation x) * i
+                                    | name x == "queen" = (9+centerEvaluation x+aggressionEvaluation x) * i
                                     | name x == "king" = 1000 * i
-                                    | name x == "castle" = 2 * i
+                                    | name x == "castle" = 0.9 * i
                                     | otherwise = 0
                                     where i | color x == c = -1
                                             | otherwise = 1
+
+boardQuotient :: [Figur] -> Char -> Double -> Double -> Double
+boardQuotient [] c oben unten = oben/unten
+boardQuotient (f:fs) c oben unten = boardQuotient fs c (fst x) (snd x)
+            where x = quotientUpdate (oben,unten) (name f) (color f /= c)
+
+quotientUpdate :: (Double,Double) -> String -> Bool ->(Double,Double)
+quotientUpdate (o,u) name oben | oben = (o+x,u)
+                               | otherwise = (o,u+x)
+                            where x | name == "pawn" = 1
+                                    | name == "knight" = 3
+                                    | name == "bishop" = 3
+                                    | name == "rook" = 5
+                                    | name == "queen" = 9
+                                    | name == "king" = 1
+                                    | otherwise = 0
+
 
 pawnEvaluation :: Figur -> Double
 pawnEvaluation p | color p == 'w' && (x p, y p) `elem` defPawnPositionsW = 0.5
                  | color p == 'b' && (x p, y p) `elem` defPawnPositionsB = 0.5
                  | color p == 'w' = int2Double (x p) * 0.05
-                 | otherwise = int2Double (7-x p) * 0.05 
+                 | otherwise = int2Double (7-x p) * 0.05
+
+centerEvaluation :: Figur -> Double
+centerEvaluation p | (x p >=2 && x p <=5) && (y p >= 2 && y p <=5) = 0.25
+                   | otherwise = 0
+
+aggressionEvaluation :: Figur -> Double
+aggressionEvaluation p | (x p >=1 && x p <=6) && (y p >= (4-colorDifference) && y p <= (6-colorDifference)) = 0.125
+                       | otherwise = 0
+                        where colorDifference | color p == 'w' = 0
+                                              | otherwise = 3
+
+longDiagonal :: Figur -> Double
+longDiagonal p | (x p == 6 && y p == 1 && color p == 'w') || (x p == 6 && y p == 6 && color p == 'b') = 0.5 
+               | x p == 1 && (y p == 1 || y p == 6) = 0.3
+               | otherwise = 0
 
 getMovesFromMemory :: [Figur] -> Int -> String
-getMovesFromMemory b x = padString (reverse (take (x*4) (reverse (name (head b)))))
+getMovesFromMemory b x = reverse (take 4 (drop ((x-1)*4) (reverse (name (head b)))))
 
 updateBoard :: [Figur] -> Move -> [Figur]
 updateBoard [] _ = []
@@ -142,10 +172,11 @@ openingBook s | turnNumber == 1 = "G1G2"
               | otherwise = "You shouldn't read this."
         where turnNumber = ((length (trimString s)) `div` 4) + 1
 
+    
 main :: IO b
 main = do
-        turnLoop ""
-
+     turnLoop ""
+        
 turnLoop :: [Char] -> IO b
 turnLoop s = do
         putStrLn "\nEnter new moves: "
@@ -159,6 +190,4 @@ turnLoop s = do
         let result = cpuMove adjustedInput x
         let adjustedResult = adjustedTurns result 1
         print("Chosen follow-up: "++adjustedResult)
-        turnLoop allTurns
-
-
+        turnLoop (allTurns++" "++adjustedResult)

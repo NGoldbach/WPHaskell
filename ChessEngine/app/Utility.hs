@@ -195,7 +195,7 @@ f4 = F 5 1 "pawn" 'b'
 testB = [f0,f1,f2,f3,f4]
 
 
-testString = adjustedTurns "D2D4 G7G6 E2E4 F8G7 C2C4 B8C6 G1F3 G7H6 C1H6 G8H6 D1C1 H6G8 B1C3 B7B6 C1G5 E7E6 E4E5 D8G5 F3G5 H7H6 F1D3 H6G5 A1D1 D7D6 D3E4 D6D5 C4D5 C6B4 CLG1 E6D5 C3D5 B4D5 E4D5 C8E6 D5A8" (-1)
+testString = adjustedTurns "G2G3 G1F3 F1G2 D7D5 G1F3 C7C6" (-1)
 -- calculateDepthBased :: [[Figur]] -> Int -> Int -> [[Figur]] --Funktioniert für Tiefe 0,1,2, aber nicht für höher? Muss bearbeitet werden, immernoch falsch
 -- calculateDepthBased [] _ _ = []
 -- calculateDepthBased b 0 0 = colorSwap [chooseBestBoard b (color (head (head b)))] 

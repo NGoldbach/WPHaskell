@@ -97,6 +97,7 @@ validMove b f move@(M x1 y1 x2 y2)
 castleCheck :: [Figur] -> String -> Char -> [Move] -- Hässlichste Funktion
 castleCheck b m c 
                         | hasMoved m (if (c == 'w') then "E0" else "E7") = [] 
+                        | hasMoved m (if (c == 'w') then "CLC0" else "CLC7") || hasMoved m (if (c == 'w') then "CLG0" else "CLG7") = []
                         | rookUnavailable b m c 0 && rookUnavailable b m c 1 = [] 
                         | not (rookUnavailable b m c 0) && rookUnavailable b m c 1 = [CastleLong]
                         | rookUnavailable b m c 0 &&  not (rookUnavailable b m c 1) = [CastleShort]
@@ -195,7 +196,7 @@ f4 = F 5 1 "pawn" 'b'
 testB = [f0,f1,f2,f3,f4]
 
 
-testString = adjustedTurns "G2G3 G1F3 F1G2 D7D5 G1F3 C7C6" (-1)
+testString = adjustedTurns "G2G3 G1F3 F1G2 D7D5 G1F3 C7C6 CLG1 C8F5 B2B3 " (-1)
 -- calculateDepthBased :: [[Figur]] -> Int -> Int -> [[Figur]] --Funktioniert für Tiefe 0,1,2, aber nicht für höher? Muss bearbeitet werden, immernoch falsch
 -- calculateDepthBased [] _ _ = []
 -- calculateDepthBased b 0 0 = colorSwap [chooseBestBoard b (color (head (head b)))] 

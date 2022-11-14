@@ -140,11 +140,11 @@ updateBoardAll l [] = l
 updateBoardAll f (x:xs) = updateBoardAll (updateBoard f x) xs  
 
 figurCheck :: Figur -> Move -> Figur
-figurCheck f m  | x f == convX (xalt m) && y f == yalt m = F (convX (xnew m)) (ynew m) (name f) (color f) 
+figurCheck f m  | x f == convX (xalt m) && y f == yalt m = F (convX (xnew m)) (ynew m) (if ((name f == "pawn") && (ynew m == 0 || ynew m == 7)) then "queen" else "pawn") (color f) 
                 | x f == convX (xnew m) && y f == ynew m = F2 
                 | x f == -1 = F (x f) (y f) (name f++convFromMove m) (turnColor (color f))
                 | otherwise = f
-
+                
 castlingFunc:: [Figur] -> Bool -> Char -> Int -> [Figur]
 castlingFunc [] long c num = [F (-2) (-2) "castle" c]
 castlingFunc (f:fs) long c num = newFigur : castlingFunc fs long c num
@@ -191,3 +191,22 @@ turnLoop s = do
         let adjustedResult = adjustedTurns result 1
         print("Chosen follow-up: "++adjustedResult)
         turnLoop (allTurns++" "++adjustedResult)
+
+
+
+
+
+
+
+
+
+
+-- promoteFunc :: [Figur] -> Int -> Int -> Char -> [Figur]
+-- promoteFunc [] _ _ _ _ = []
+-- promoteFunc (f:fs) p x1 x2 c = newFigur ++ promoteFunc fs p x1 x2 c
+--         where newFigur  | x f == (-1) = F (x f) (y f) (name f++"PR"++[convToX x1]++[convToX x2]) (turnColor c)
+--                         | (x f == x2) && (f y == (if (c == 'w') then 7 else 0)) = [] 
+--                         | (x f == x1) && (f y == (if (c == 'w') then 6 else 1)) = [F x2 ((if (c == 'w') then 7 else 0)) "queen" c]
+--                         | otherwise = f
+-- Promote {x1::Int x2::Int}
+-- "PR" `isInfixOf` s = Promote (convX s!!2) (convX s!!3)

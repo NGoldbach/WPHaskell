@@ -9,14 +9,10 @@ starterBoard = [F (-1) (-1) "" 'w'] ++ createFigures 'w' ++ createFigures 'b'
 
 moveFigure :: [Figur] -> [Move] -> [[Figur]]
 moveFigure _ [] = []
-moveFigure b (m:ms) = updateBoard b m : moveFigure b ms 
-
-makeMoveList :: [Figur] -> Figur -> [[Int]] -> [Move]
-makeMoveList _ _ [] = []
-makeMoveList b f (m:ms) = moveCheckResult ++ makeMoveList b f ms
-                where moveCheckResult   | (validMove b f currentMove) =  [currentMove]
-                                        | otherwise = []
-                                         where currentMove = M (convToX(x f)) (y f) (convToX (x f + m!!0)) (y f + m!!1)
+moveFigure b (m:ms) = boardCheck ++ moveFigure b ms
+                where boardCheck | isCheck newBoard (getTileFromName newBoard "king") = []
+                                 | otherwise = [newBoard]
+                        where newBoard = updateBoard b m
 
 createBoardVariations :: [Figur] -> [Figur] -> [[Figur]]
 createBoardVariations _ [] = []
@@ -64,7 +60,7 @@ calcDepthBased ([], _) _ = ([],[])
 calcDepthBased (_, []) _ = ([],[])
 calcDepthBased (b,l) 1 = ([chooseBestBoard (init b) (color(head(head b)))], l)
 calcDepthBased (b,l) x = calcDepthBased (boardUpdate ++ (drop (l!!0+l!!1) b),(drop 1 l)) (x-1)
-                where boardUpdate = colorSwap (boardComparator (take (l!!0) b) (take (l!!1) (drop (l!!0) b)) (color(head(head b))))
+                where boardUpdate = colorSwap (filter (not.null) (boardComparator (take (l!!0) b) (take (l!!1) (drop (l!!0) b)) (color(head(head b)))))
 
 chooseBestBoard :: [[Figur]] -> Char -> [Figur]
 chooseBestBoard [] _ = []
@@ -87,7 +83,7 @@ evaluateChessboard (x:xs) c = y + evaluateChessboard xs c
                                             | otherwise = 1
 
 boardQuotient :: [Figur] -> Char -> Double -> Double -> Double
-boardQuotient [] c oben unten = oben/unten
+boardQuotient [] c oben unten = 10 * (oben/unten)
 boardQuotient (f:fs) c oben unten = boardQuotient fs c (fst x) (snd x)
             where x = quotientUpdate (oben,unten) (name f) (color f /= c)
 
@@ -140,7 +136,7 @@ updateBoardAll l [] = l
 updateBoardAll f (x:xs) = updateBoardAll (updateBoard f x) xs  
 
 figurCheck :: Figur -> Move -> Figur
-figurCheck f m  | x f == convX (xalt m) && y f == yalt m = F (convX (xnew m)) (ynew m) (if ((name f == "pawn") && (ynew m == 0 || ynew m == 7)) then "queen" else "pawn") (color f) 
+figurCheck f m  | x f == convX (xalt m) && y f == yalt m = F (convX (xnew m)) (ynew m) (if ((name f == "pawn") && (ynew m == 0 || ynew m == 7)) then "queen" else name f) (color f) 
                 | x f == convX (xnew m) && y f == ynew m = F2 
                 | x f == -1 = F (x f) (y f) (name f++convFromMove m) (turnColor (color f))
                 | otherwise = f

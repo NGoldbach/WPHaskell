@@ -114,7 +114,7 @@ rookUnavailable b m c 0 = hasMoved  m (if (c == 'w') then "A0" else "A7") || isB
 rookUnavailable b m c 1 = hasMoved  m (if (c == 'w') then "H0" else "H7") || isBlocked b (createCoordList (M 'H' v 'E' v)) where v = if (c == 'w') then 0 else 7
 
 isInvalidPawnMove :: [Figur] -> Figur -> Char -> Move -> Bool
-isInvalidPawnMove b f c (M x1 y1 x2 y2) = ((x1 /= x2) && (not (isOccupied b tc (convX x2) y2))) || ((x1 == x2) && (isOccupied b tc (convX x2) y2)) || ((abs (y1-y2) == 2) && ((y1 /= 0 && c == 'w')||(y1 /= 7 && c == 'b')))
+isInvalidPawnMove b f c (M x1 y1 x2 y2) = ((x1 /= x2) && (not (isOccupied b tc (convX x2) y2))) || ((x1 == x2) && ((isOccupied b 'b' (convX x2) y2)|| (isOccupied b 'w' (convX x2) y2))) || ((abs (y1-y2) == 2) && ((y1 /= 1 && c == 'w')||(y1 /= 6 && c == 'b')))
                         where tc | c == 'w' = 'b'
                                  | otherwise = 'w'
 
@@ -139,6 +139,54 @@ divideMove (M x1 y1 x2 y2) = (((convX x2 - convX x1) `div` y ,  (y2-y1) `div` y 
                         where y | abs (convX x2 - convX x1) > abs (y2-y1) = abs(convX x2 - convX x1)
                                 | otherwise = abs(y2-y1)
 
+isCheck :: [Figur] -> (Int, Int) -> Bool
+isCheck b (x1,y1) = let s1 = tileScope (x1,y1)
+                        s2 = filterByScope s1 b (color(head b))
+                        s3 = scopeFigureMoves b s2
+                        in doScopedMovesCheck s3 (x1,y1)
+
+doScopedMovesCheck :: [Move] -> (Int, Int) -> Bool
+doScopedMovesCheck [] _ = False
+doScopedMovesCheck (m:ms) t = (convX (xnew m) == fst t && ynew m == snd t) || doScopedMovesCheck ms t
+                        
+tileScope :: (Int, Int) -> [(Int, Int)]
+tileScope x = createScope x queenMoves ++ createScope x knightMoves
+
+createScope :: Num b => (b, b) -> [[b]] -> [(b, b)]
+createScope x [] = []
+createScope x (y:ys) = (fst x + head y, snd x + last y) : createScope x ys
+
+filterByScope :: [(Int, Int)] -> [Figur] -> Char -> [Figur]
+filterByScope [] _ _ = []
+filterByScope (t:ts) b c = figurAtTile ++ filterByScope ts b c
+                where figurAtTile       | isOccupied b c (fst t) (snd t) = getFigurFromTile b t c
+                                        | otherwise = []
+
+getFigurFromTile :: [Figur] -> (Int, Int) -> Char -> [Figur]
+getFigurFromTile [] _ _ = []
+getFigurFromTile (f:fs) (tx,ty) c = if (x f == tx && y f == ty && color f == c && (x f >= 0)) then [f] else getFigurFromTile fs (tx,ty) c
+
+getTileFromName [] _ = (8,8)
+getTileFromName (f:fs) s = if (name f == s) then (x f, y f) else getTileFromName fs s
+
+
+scopeFigureMoves b [] = []
+scopeFigureMoves b (x:xs) = makeMoveList b x moves ++ scopeFigureMoves b xs
+        where moves | name x == "knight" = knightMoves
+                | name x == "rook" = rookMoves
+                | name x == "bishop" = bishopMoves
+                | name x == "queen" = queenMoves
+                | name x == "king" = kingMoves
+                | (name x == "pawn") && (color x == 'w') = pawnMovesW
+                | (name x == "pawn") && (color x == 'b') = pawnMovesB
+                | otherwise = []
+
+makeMoveList :: [Figur] -> Figur -> [[Int]] -> [Move]
+makeMoveList _ _ [] = []
+makeMoveList b f (m:ms) = moveCheckResult ++ makeMoveList b f ms
+                where moveCheckResult   | (validMove b f currentMove) =  [currentMove]
+                                        | otherwise = []
+                                                where currentMove = M (convToX(x f)) (y f) (convToX (x f + m!!0)) (y f + m!!1)
 
 padString :: String -> String
 padString [] = []

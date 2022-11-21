@@ -3,10 +3,17 @@ import Utility
 import Data.List (isInfixOf)
 import GHC.Float (int2Double)
 
+-- The board, when a chess game starts.
+-- First figure is a so called memory figure,
+-- that represents the color that is about to play.
 starterBoard :: [Figur]
 starterBoard = [F (-1) (-1) "" 'w'] ++ createFigures 'w' ++ createFigures 'b'
 
 
+-- A function that takes a board and a list of moves
+-- and returns a list of the resulting boards.
+-- Each resulting board in the returned list
+-- is a possible game situation after a move from the move-list has been played.
 moveFigure :: [Figur] -> [Move] -> [[Figur]]
 moveFigure _ [] = []
 moveFigure b (m:ms) = boardCheck ++ moveFigure b ms
@@ -14,6 +21,10 @@ moveFigure b (m:ms) = boardCheck ++ moveFigure b ms
                                  | otherwise = [newBoard]
                         where newBoard = updateBoard b m
 
+-- A function that accepts a board
+-- and returns a list of boards. 
+-- It creates all the variations of a given board
+-- considering the moves that the figures on the board are able to make.
 createBoardVariations :: [Figur] -> [Figur] -> [[Figur]]
 createBoardVariations _ [] = []
 createBoardVariations b (x:xs) = moveFigure b moveList ++ createBoardVariations b xs
@@ -27,15 +38,25 @@ createBoardVariations b (x:xs) = moveFigure b moveList ++ createBoardVariations 
                             | (name x == "pawn") && (color x == 'b') = pawnMovesB
                             | otherwise = []
 
+
+-- A recursive function call of createBoardVariations.
+-- It receives a list of boards and
+-- returns a list of boards.
 createAllBoardVariations :: [[Figur]] -> [[Figur]]
 createAllBoardVariations [] = []
 createAllBoardVariations [b] = createBoardVariations b b
 createAllBoardVariations (b:bs) = (createBoardVariations b b) ++ createAllBoardVariations bs
 
+-- creates all the board variations possible
+-- given a number x, which is a natural number but not zero.
+-- The number x represents the depth of the chess engine's forecasting ability.
+-- The chess engine can currently generate boards for a depth up to 4, within minutes.  
 createDepthBased :: [[Figur]] -> Int -> [[Figur]]
 createDephtBased [] _ = []
 createDepthBased b 1 = b ++ createAllBoardVariations b
 createDepthBased b x = b ++ createDepthBased (createAllBoardVariations b) (x-1)
+
+
 
 createLengthList :: [[Figur]] -> Int -> [Int]
 createLengthList [] _ = []
@@ -45,7 +66,9 @@ createLengthList b x = [y] ++ createLengthList (drop y b) (x-1)
                                 where val = length (name (head (head b))) `div` 4
 
 
-
+-- A function that receives 2 lists of boards, a color
+-- and returns a list of boards.
+-- ******************************************
 boardComparator :: [[Figur]] -> [[Figur]] -> Char -> [[Figur]]
 boardComparator [] _ _ = []
 boardComparator _ [] _ = []
@@ -68,6 +91,10 @@ chooseBestBoard [x] _ = x
 chooseBestBoard (x:x2:xs) c | (evaluateChessboard x c + boardQuotient x c 0 0) >= (evaluateChessboard x2 c+boardQuotient x2 c 0 0) = chooseBestBoard (x:xs) c
                             | otherwise = chooseBestBoard (x2:xs) c
 
+-- A simple function, that
+-- takes a board and a character, which determines the color
+-- and offers a Double, which is interpreted as the value of a board,
+-- in terms of material count and material position.
 evaluateChessboard :: [Figur] -> Char -> Double
 evaluateChessboard [] _ = 0
 evaluateChessboard (x:xs) c = y + evaluateChessboard xs c
@@ -168,7 +195,8 @@ openingBook s | turnNumber == 1 = "G1G2"
               | otherwise = "You shouldn't read this."
         where turnNumber = ((length (trimString s)) `div` 4) + 1
 
-    
+
+-- The main function. 
 main :: IO b
 main = do
      turnLoop ""

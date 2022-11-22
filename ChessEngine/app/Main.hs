@@ -57,7 +57,9 @@ createDepthBased b 1 = b ++ createAllBoardVariations b
 createDepthBased b x = b ++ createDepthBased (createAllBoardVariations b) (x-1)
 
 
-
+-- A function that takes a list of boards, an integer number
+-- and returns a list of integer numbers.
+--
 createLengthList :: [[Figur]] -> Int -> [Int]
 createLengthList [] _ = []
 createLengthList b 0 = [filterByLength b (length (name (head (head b))) `div` 4)]
@@ -66,7 +68,7 @@ createLengthList b x = [y] ++ createLengthList (drop y b) (x-1)
                                 where val = length (name (head (head b))) `div` 4
 
 
--- A function that receives 2 lists of boards, a color
+-- A function that receives 2 lists of boards, the color
 -- and returns a list of boards.
 -- ******************************************
 boardComparator :: [[Figur]] -> [[Figur]] -> Char -> [[Figur]]
@@ -85,10 +87,13 @@ calcDepthBased (b,l) 1 = ([chooseBestBoard (init b) (color(head(head b)))], l)
 calcDepthBased (b,l) x = calcDepthBased (boardUpdate ++ (drop (l!!0+l!!1) b),(drop 1 l)) (x-1)
                 where boardUpdate = colorSwap (filter (not.null) (boardComparator (take (l!!0) b) (take (l!!1) (drop (l!!0) b)) (color(head(head b)))))
 
+-- A function, that expects a list of boards, the color
+-- and returns a board.
+-- The returned board is the one with the best evaluation.
 chooseBestBoard :: [[Figur]] -> Char -> [Figur]
 chooseBestBoard [] _ = []
 chooseBestBoard [x] _ = x
-chooseBestBoard (x:x2:xs) c | (evaluateChessboard x c + boardQuotient x c 0 0) >= (evaluateChessboard x2 c+boardQuotient x2 c 0 0) = chooseBestBoard (x:xs) c
+chooseBestBoard (x:x2:xs) c | (evaluateChessboard x c + boardQuotient x c 0 0) >= (evaluateChessboard x2 c + boardQuotient x2 c 0 0) = chooseBestBoard (x:xs) c
                             | otherwise = chooseBestBoard (x2:xs) c
 
 -- A simple function, that

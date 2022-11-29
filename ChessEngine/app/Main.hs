@@ -130,7 +130,6 @@ quotientUpdate (o,u) name oben | oben = (o+x,u)
                                     | name == "king" = 1
                                     | otherwise = 0
 
-
 pawnEvaluation :: Figur -> Double
 pawnEvaluation p | color p == 'w' && (x p, y p) `elem` defPawnPositionsW = 0.5
                  | color p == 'b' && (x p, y p) `elem` defPawnPositionsB = 0.5

@@ -130,30 +130,48 @@ quotientUpdate (o,u) name oben | oben = (o+x,u)
                                     | name == "king" = 1
                                     | otherwise = 0
 
+-- A function that evaluates a pawn
+-- depending on its position on board.
 pawnEvaluation :: Figur -> Double
 pawnEvaluation p | color p == 'w' && (x p, y p) `elem` defPawnPositionsW = 0.5
                  | color p == 'b' && (x p, y p) `elem` defPawnPositionsB = 0.5
                  | color p == 'w' = int2Double (x p) * 0.05
                  | otherwise = int2Double (7-x p) * 0.05
 
+-- A function that gives extra points 
+-- to the evaluation score of a figure
+-- if it's positioned at the centre.
 centerEvaluation :: Figur -> Double
 centerEvaluation p | (x p >=2 && x p <=5) && (y p >= 2 && y p <=5) = 0.25
                    | otherwise = 0
 
+-- A function that gives extra points
+-- to the evaluation score of a figure
+-- if it's on an aggressive position.     
 aggressionEvaluation :: Figur -> Double
 aggressionEvaluation p | (x p >=1 && x p <=6) && (y p >= (4-colorDifference) && y p <= (6-colorDifference)) = 0.125
                        | otherwise = 0
                         where colorDifference | color p == 'w' = 0
                                               | otherwise = 3
 
+-- A function that gives extra points
+-- to the evaluation score of a bishop
+-- if it's on the edges of the board.
 longDiagonal :: Figur -> Double
 longDiagonal p | (x p == 6 && y p == 1 && color p == 'w') || (x p == 6 && y p == 6 && color p == 'b') = 0.5 
                | x p == 1 && (y p == 1 || y p == 6) = 0.3
                | otherwise = 0
 
+-- Gets the moves from the memory figure
+-- in form of a String.
 getMovesFromMemory :: [Figur] -> Int -> String
 getMovesFromMemory b x = reverse (take 4 (drop ((x-1)*4) (reverse (name (head b)))))
 
+-- Takes a board and a move
+-- and offers an updated board.
+-- The updated board is the result of the move, that got played.
+-- Castling is treated as a special move, because
+-- of it consists of two moves.
 updateBoard :: [Figur] -> Move -> [Figur]
 updateBoard [] _ = []
 updateBoard b CastleLong = castlingFunc b True (color (head b)) yPos where yPos =  if (color (head b) == 'w') then 0 else 7
@@ -162,10 +180,15 @@ updateBoard (x:xs) y = s  ++ updateBoard xs y
                             where s | figurCheck x y == F2 = [] 
                                     | otherwise = [figurCheck x y] 
 
+-- A recursive call of updateBoard.
 updateBoardAll :: [Figur] -> [Move] -> [Figur]
 updateBoardAll l [] = l
 updateBoardAll f (x:xs) = updateBoardAll (updateBoard f x) xs  
 
+-- Receives a figure and a move and 
+-- returns a figure.
+-- The returned figure can be the given figure after a move,
+-- the given figure untouched or nothing, if the figure has been taken.
 figurCheck :: Figur -> Move -> Figur
 figurCheck f m  | x f == convX (xalt m) && y f == yalt m = F (convX (xnew m)) (ynew m) (if ((name f == "pawn") && (ynew m == 0 || ynew m == 7)) then "queen" else name f) (color f) 
                 | x f == convX (xnew m) && y f == ynew m = F2 

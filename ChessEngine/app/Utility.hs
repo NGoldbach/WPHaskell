@@ -161,7 +161,7 @@ rookUnavailable b m c 0 = hasMoved  m (if (c == 'w') then "A0" else "A7") || isB
 rookUnavailable b m c 1 = hasMoved  m (if (c == 'w') then "H0" else "H7") || isBlocked b (createCoordList (M 'H' v 'E' v)) where v = if (c == 'w') then 0 else 7
 
 
---------------------------------------------------------------IS A FIGURE ARGUMENT NEEDED?
+--------------------------------------------------------------IS A FIGURE ARGUMENT NEEDED?----------------------------------------------------------------------
 
 -- A function that receives a board, a figure, the color which is about to play and a move
 -- and returns a boolean.
@@ -190,6 +190,7 @@ isBlocked b [] = False
 isBlocked b (m:ms) = isOccupied b 'w' (fst m) (snd m) || isOccupied b 'b' (fst m) (snd m) || isBlocked b (ms)
 
 
+-- This function takes a move and returns a list of coordinates that can be reached with this move.
 createCoordList :: Move -> [(Int,Int)]
 createCoordList move@(M x1 y1 x2 y2) =  makeIncrementList (convX x1) y1 (fst t) (snd t)  where t = divideMove move
 
@@ -266,10 +267,13 @@ trimString (c:cs) = y ++ trimString cs
                 | otherwise = [c] 
 
 
+-- Returns the played moves from the memory figures of every board in a list of boards
+-- and merges them, resulting in a list of move sequences.
 pullMemory :: [[Figur]] -> [String]
 pullMemory [] = []
 pullMemory (b:bs) = name (head b) : pullMemory bs
 
+-- Returns a list of the amount of figures each board in a list of boards has.
 pullLength :: [[Figur]] -> [Int]
 pullLength [] = []
 pullLength (b:bs) = length b : pullLength bs

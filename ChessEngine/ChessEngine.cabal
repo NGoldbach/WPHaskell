@@ -36,7 +36,8 @@ library
 executable ChessEngine-exe
   main-is: Main.hs
   other-modules:
-      Utility
+      EngineData
+      EngineFunctions
       Paths_ChessEngine
   hs-source-dirs:
       app

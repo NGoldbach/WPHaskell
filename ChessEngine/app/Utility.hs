@@ -1,6 +1,8 @@
 module Utility where
 import Data.Char(digitToInt, isDigit)
 import Data.List ( isInfixOf )
+import Data.Map hiding (take,drop)
+import qualified Data.Map as Map
 
 -- A data type for a figure.
 -- It has a x- and a y-coordinate,
@@ -13,7 +15,7 @@ data Figur = F {x::Int, y::Int, name::String, color::Char} | F2 {} deriving (Sho
 -- and a new x- and y-coordinate.
 -- CastleShort and CastleLong are special move Constructors
 -- designed for the Castling Move.
-data Move = M {xalt::Char, yalt::Int, xnew::Char, ynew::Int} | CastleShort | CastleLong deriving Show 
+data Move = M {xalt::Char, yalt::Int, xnew::Char, ynew::Int} | CastleShort | CastleLong | EnPassantL | EnPassantR deriving Show 
 
 -- Converts a character to an int.
 convX :: Char -> Int
@@ -36,6 +38,8 @@ convToMove s =
 convSpecialMove :: String -> Move
 convSpecialMove s | s == "CLC0" || s == "CLC7" = CastleLong
                   | s == "CLG0" || s == "CLG7" = CastleShort
+                  | s == "EPLT" = EnPassantL
+                  | s == "EPRT" = EnPassantR
 
 -- Converts a String to a list of moves.
 convMoves :: String -> [Move]
@@ -141,10 +145,10 @@ castleCheck b m c
                         | not (rookUnavailable b m c 0) && rookUnavailable b m c 1 = [CastleLong]
                         | rookUnavailable b m c 0 &&  not (rookUnavailable b m c 1) = [CastleShort]
                         | otherwise = [CastleLong, CastleShort]
-
+            
 -- A list of played special Moves
 specialMoves :: [Figur] -> [Move]
-specialMoves b = castleCheck b (name memory) (color memory) where memory = head b
+specialMoves b = castleCheck b (name memory) (color memory) ++ enPassantCheck b (name memory) (color memory) where memory = head b
 
 -- A function that, given a string that contains moves
 -- and a string that represents a single move,
@@ -232,8 +236,9 @@ getFigurFromTile :: [Figur] -> (Int, Int) -> Char -> [Figur]
 getFigurFromTile [] _ _ = []
 getFigurFromTile (f:fs) (tx,ty) c = if (x f == tx && y f == ty && color f == c && (x f >= 0)) then [f] else getFigurFromTile fs (tx,ty) c
 
-getTileFromName [] _ = (8,8)
-getTileFromName (f:fs) s = if (name f == s) then (x f, y f) else getTileFromName fs s
+getTileFromName :: [Figur] -> String -> Char-> (Int, Int)
+getTileFromName [] _ _ = (8,8)
+getTileFromName (f:fs) s c = if (name f == s && c == color f) then (x f, y f) else getTileFromName fs s c
 
 
 scopeFigureMoves b [] = []
@@ -305,23 +310,43 @@ readInt = read
 turnColor :: Char -> Char
 turnColor c | c == 'w' = 'b'
             | otherwise = 'w'
+            
+enPassantCheck:: [Figur] -> String -> Char -> [Move] 
+enPassantCheck b s c = enPassantMoveCheck b c (enPassantStringCheck s c)
 
-f0 = F 1 1 "pawn" 'w'
+ePFCHelper :: [Figur] -> (Int, Int) -> Char -> Bool
+ePFCHelper b cc c = not (Prelude.null (getFigurFromTile b cc c))
 
-f1 = F 2 1 "pawn" 'w'
+enPassantMoveCheck :: [Figur] -> Char -> [(Int,Int)] -> [Move]
+enPassantMoveCheck _ _ [] = []
+enPassantMoveCheck b c [x] = if ePFCHelper b x c then (if fst x == 1 then [EnPassantR] else [EnPassantL]) else []
+enPassantMoveCheck b c (c1:c2:_) = [EnPassantL | ePFCHelper b c1 c] ++ [EnPassantR | ePFCHelper b c2 c]
 
-f2 = F 3 1 "pawn" 'w'
+enPassantStringCheck :: String -> Char -> [(Int,Int)]
+enPassantStringCheck s c = if (Data.Map.member (drop (length s-4) s) colorMap && not((take 2 (drop (length s-4) s)) `isInfixOf`(take (length s-4) s)))
+                        then colorMap Data.Map.! (drop (length s-4) s) else [] 
+                         where colorMap = (if (c == 'w') then enPassantMapWhite else enPassantMapBlack)
 
-f3 = F 4 1 "pawn" 'b'
+enPassantMapBlack::Map String [(Int,Int)]
+enPassantMapBlack = fromList([("A1A3",[(1,3)]),
+                ("B1B3",[(0,3),(2,3)]),
+                ("C1C3",[(1,3),(3,3)]),
+                ("D1D3",[(2,3),(4,3)]),
+                ("E1E3",[(3,3),(5,3)]),
+                ("F1F3",[(4,3),(6,3)]),
+                ("G1G3",[(5,3),(7,3)]),
+                ("H1H3",[(6,3)])])
+        
+enPassantMapWhite::Map String [(Int,Int)]
+enPassantMapWhite = fromList([("A6A4",[(1,4)]),
+                ("B6B4",[(0,4),(2,4)]),
+                ("C6C4",[(1,4),(3,4)]),
+                ("D6D4",[(2,4),(4,4)]),
+                ("E6E4",[(3,4),(5,4)]),
+                ("F6F4",[(4,4),(6,4)]),
+                ("G6G4",[(5,4),(7,4)]),
+                ("H6H4",[(6,4)])])
 
-f4 = F 5 1 "pawn" 'b'
-testB = [f0,f1,f2,f3,f4]
 
-
-testString = adjustedTurns "G2G3 G1F3 F1G2 D7D5 G1F3 C7C6 CLG1 C8F5 B2B3 " (-1)
--- calculateDepthBased :: [[Figur]] -> Int -> Int -> [[Figur]] --Funktioniert für Tiefe 0,1,2, aber nicht für höher? Muss bearbeitet werden, immernoch falsch
--- calculateDepthBased [] _ _ = []
--- calculateDepthBased b 0 0 = colorSwap [chooseBestBoard b (color (head (head b)))] 
--- calculateDepthBased b 0 1 = [chooseBestBoard b1 (color(head(head b1)))] where b1 = colorSwap b
--- calculateDepthBased (b:bs) x y = calculateDepthBased ((calculateDepthBased (createBoardVariations b b) (x-1) 0) ++ (calculateDepthBased bs (x)) 0) 0 y
-                                 
+testString :: String
+testString = adjustedTurns "G2G3 F1G2 G1F3 F3H4 G2B7 B7A8 H1G1 E7E5 D7D6 F8E7 E7H4 G3H4 D8H4 H4H2 C8G4 G8F6 G1H1 G4H3" (-1)

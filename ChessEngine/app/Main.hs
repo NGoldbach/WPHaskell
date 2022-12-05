@@ -1,6 +1,7 @@
 import Language.Haskell.TH.Syntax (Lit(IntegerL))
 import Utility
 import Data.List (isInfixOf)
+import Data.Char(digitToInt, isDigit)
 import GHC.Float (int2Double)
 
 -- The board, when a chess game starts.
@@ -17,7 +18,7 @@ starterBoard = [F (-1) (-1) "" 'w'] ++ createFigures 'w' ++ createFigures 'b'
 moveFigure :: [Figur] -> [Move] -> [[Figur]]
 moveFigure _ [] = []
 moveFigure b (m:ms) = boardCheck ++ moveFigure b ms
-                where boardCheck | isCheck newBoard (getTileFromName newBoard "king") = []
+                where boardCheck | isCheck newBoard (getTileFromName newBoard "king" (color (head b))) = []
                                  | otherwise = [newBoard]
                         where newBoard = updateBoard b m
 
@@ -174,6 +175,20 @@ getMovesFromMemory b x = reverse (take 4 (drop ((x-1)*4) (reverse (name (head b)
 -- of it consists of two moves.
 updateBoard :: [Figur] -> Move -> [Figur]
 updateBoard [] _ = []
+updateBoard b EnPassantL = 
+        let     memory = (name (head b))
+                relevantM = (drop (length memory-2) memory)
+                xDelete = convX (relevantM!!0)
+                xMove = xDelete-1
+                y = digitToInt (relevantM!!1)
+        in enPassantFunc b True xDelete xMove y (color(head b))
+updateBoard b EnPassantR = 
+        let     memory = (name (head b))
+                relevantM = (drop (length memory-2) memory)
+                xDelete = convX (relevantM!!0)
+                xMove = xDelete+1
+                y = digitToInt (relevantM!!1)
+        in enPassantFunc b False xDelete xMove y (color(head b))
 updateBoard b CastleLong = castlingFunc b True (color (head b)) yPos where yPos =  if (color (head b) == 'w') then 0 else 7
 updateBoard b CastleShort = castlingFunc b False (color (head b)) yPos where yPos =  if (color (head b) == 'w') then 0 else 7
 updateBoard (x:xs) y = s  ++ updateBoard xs y 
@@ -207,6 +222,18 @@ castlingFunc (f:fs) long c num = newFigur : castlingFunc fs long c num
                                | otherwise = f
                                where yChar | c == 'w' = '0'
                                            | otherwise = '7'
+
+
+enPassantFunc:: [Figur] -> Bool -> Int -> Int -> Int -> Char -> [Figur]
+enPassantFunc [] _ _ _ _ _ = []
+enPassantFunc (f:fs) fromLeft xDelete xMove yDM c = newFigur ++ enPassantFunc fs fromLeft xDelete xMove yDM c
+                where newFigur  | x f == xDelete && y f == yDM = []
+                                | x f == xMove && y f == yDM = [F xDelete (if c == 'w' then yDM+1 else yDM-1) (name f) (color f)]
+                                | x f == (-1) = [F (x f) (y f) (name f++enPassantFuncHelper fromLeft xDelete yDM (if c == 'w' then 1 else (-1))) (turnColor (color f))]
+                                | otherwise = [f]
+
+enPassantFuncHelper:: Bool->Int->Int->Int->String
+enPassantFuncHelper fromLeft xDelete yDM offset = convToX (xDelete+(if fromLeft then (-1) else 1)) : convToX (yDM-17) : convToX xDelete : [convToX (yDM-17+offset)]
 
 cpuMove :: String -> Int -> String
 cpuMove s i = if (length (s) <= 20) then openingBook s else (getMovesFromMemory calcResult i)

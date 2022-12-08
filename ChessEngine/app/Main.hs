@@ -21,4 +21,6 @@ turnLoop s = do
         let result = cpuMove adjustedInput x
         let adjustedResult = adjustedTurns result 1
         print("Chosen follow-up: "++adjustedResult)
+        print("Game: " ++ allTurns++" "++adjustedResult)
         turnLoop (allTurns++" "++adjustedResult)
+     

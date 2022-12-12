@@ -8,102 +8,7 @@ import EngineData
 
 --------------------------- Test Variables etc. -----------
 testString :: String
-testString = adjustedTurns "G2G3 F1G2 G1F3 F3H4 G2B7 B7A8 H1G1 E7E5 D7D6 F8E7 E7H4 G3H4 D8H4 H4H2 C8G4 G8F6 G1H1 G4H3" (-1)
-
-
-
-
-
-
-
-
-
-
--------------------------------------- Change Board-------------------------
--- The board, when a chess game starts.
--- First figure is a so called memory figure,
--- that "remembers" the color that is about to play,
--- aswell as the moves that have been played up to now.
-starterBoard :: [Figur]
-starterBoard = [F (-1) (-1) "" 'w'] ++ createFigures 'w' ++ createFigures 'b'
-
--- A function that takes a board and a list of moves
--- and returns a list of the resulting boards.
--- Each resulting board in the returned list
--- is a possible game situation after a move from the move-list has been played.
-moveFigure :: [Figur] -> [Move] -> [[Figur]]
-moveFigure _ [] = []
-moveFigure b (m:ms) = boardCheck ++ moveFigure b ms
-                where boardCheck | isCheck newBoard (getTileFromName newBoard "king" (color (head b))) = []
-                                 | otherwise = [newBoard]
-                        where newBoard = updateBoard b m
-
--- Takes a board and a move
--- and offers an updated board.
--- The updated board is the result of the move, that got played.
--- Castling is treated as a special move, because
--- of it consists of two moves.
-updateBoard :: [Figur] -> Move -> [Figur]
-updateBoard [] _ = []
-updateBoard b EnPassantL = 
-        let     memory = (name (head b))
-                relevantM = (drop (length memory-2) memory)
-                xDelete = convX (relevantM!!0)
-                xMove = xDelete-1
-                y = digitToInt (relevantM!!1)
-        in enPassantFunc b True xDelete xMove y (color(head b))
-updateBoard b EnPassantR = 
-        let     memory = (name (head b))
-                relevantM = (drop (length memory-2) memory)
-                xDelete = convX (relevantM!!0)
-                xMove = xDelete+1
-                y = digitToInt (relevantM!!1)
-        in enPassantFunc b False xDelete xMove y (color(head b))
-updateBoard b CastleLong = castlingFunc b True (color (head b)) yPos where yPos =  if (color (head b) == 'w') then 0 else 7
-updateBoard b CastleShort = castlingFunc b False (color (head b)) yPos where yPos =  if (color (head b) == 'w') then 0 else 7
-updateBoard (x:xs) y = s  ++ updateBoard xs y 
-                            where s | figurCheck x y == F2 = [] 
-                                    | otherwise = [figurCheck x y] 
-
--- A recursive call of updateBoard.
-updateBoardAll :: [Figur] -> [Move] -> [Figur]
-updateBoardAll l [] = l
-updateBoardAll f (x:xs) = updateBoardAll (updateBoard f x) xs  
-
--- Receives a figure and a move and returns a figure.
--- The returned figure can be the given figure after a move,
--- the given figure untouched or nothing, if the figure has been taken.
-figurCheck :: Figur -> Move -> Figur
-figurCheck f m  | x f == convX (xalt m) && y f == yalt m = F (convX (xnew m)) (ynew m) (if ((name f == "pawn") && (ynew m == 0 || ynew m == 7)) then "queen" else name f) (color f) 
-                | x f == convX (xnew m) && y f == ynew m = F2 
-                | x f == -1 = F (x f) (y f) (name f++convFromMove m) (turnColor (color f))
-                | otherwise = f
-
--- Changes Board based on which side the castling happened. Similar logic as figurCheck
-castlingFunc:: [Figur] -> Bool -> Char -> Int -> [Figur]
-castlingFunc [] long c num = [F (-2) (-2) "castle" c]
-castlingFunc (f:fs) long c num = newFigur : castlingFunc fs long c num
-                where newFigur | long && name f == "king" && color f ==  c = F 2 num "king" c
-                               | not long && name f == "king" && color f ==  c = F 6 num "king" c
-                               | long && x f == 0 && y f == num = F 3 num "rook" c
-                               | not long && x f == 7 && y f == num = F 5 num "rook" c
-                               | long && x f == (-1) = F (x f) (y f) (name f++"CLC"++[yChar]) (turnColor c)
-                               | not long && x f == (-1) = F (x f) (y f) (name f++"CLG"++[yChar]) (turnColor c)
-                               | otherwise = f
-                               where yChar | c == 'w' = '0'
-                                           | otherwise = '7'
-
--- Changes Board based on which pawn took en Passant. Similiar logic as figurCheck
-enPassantFunc:: [Figur] -> Bool -> Int -> Int -> Int -> Char -> [Figur]
-enPassantFunc [] _ _ _ _ _ = []
-enPassantFunc (f:fs) fromLeft xDelete xMove yDM c = newFigur ++ enPassantFunc fs fromLeft xDelete xMove yDM c
-                where newFigur  | x f == xDelete && y f == yDM = []
-                                | x f == xMove && y f == yDM = [F xDelete (if c == 'w' then yDM+1 else yDM-1) (name f) (color f)]
-                                | x f == (-1) = [F (x f) (y f) (name f++enPassantFuncHelper fromLeft xDelete yDM (if c == 'w' then 1 else (-1))) (turnColor (color f))]
-                                | otherwise = [f]
--- Creates the string that will be added to the memory figure after en Passant
-enPassantFuncHelper:: Bool->Int->Int->Int->String
-enPassantFuncHelper fromLeft xDelete yDM offset = convToX (xDelete+(if fromLeft then (-1) else 1)) : convToX (yDM-17) : convToX xDelete : [convToX (yDM-17+offset)]
+testString = adjustedTurns "A2A3 A7A6 B2B3 B7B6 E2E4 F7F6 D2D3 G7G5" (-1)
 
 
 -------------------------------------------------- Rules / Check Validity ----------------------------------------
@@ -266,12 +171,91 @@ makeMoveList b f (m:ms) = moveCheckResult ++ makeMoveList b f ms
 
 
 
+-------------------------------------- Change Board-------------------------
+-- The board, when a chess game starts.
+-- First figure is a so called memory figure,
+-- that "remembers" the color that is about to play,
+-- aswell as the moves that have been played up to now.
+starterBoard :: [Figur]
+starterBoard = [F (-1) (-1) "" 'w'] ++ createFigures 'w' ++ createFigures 'b'
 
+-- A function that takes a board and a list of moves
+-- and returns a list of the resulting boards.
+-- Each resulting board in the returned list
+-- is a possible game situation after a move from the move-list has been played.
+moveFigure :: [Figur] -> [Move] -> [[Figur]]
+moveFigure _ [] = []
+moveFigure b (m:ms) = boardCheck ++ moveFigure b ms
+                where boardCheck | isCheck newBoard (getTileFromName newBoard "king" (color (head b))) = []
+                                 | otherwise = [newBoard]
+                        where newBoard = updateBoard b m
 
+-- Takes a board and a move
+-- and offers an updated board.
+-- The updated board is the result of the move, that got played.
+-- Castling is treated as a special move, because
+-- of it consists of two moves.
+updateBoard :: [Figur] -> Move -> [Figur]
+updateBoard [] _ = []
+updateBoard b EnPassantL = 
+        let     memory = (name (head b))
+                relevantM = (drop (length memory-2) memory)
+                xDelete = convX (relevantM!!0)
+                xMove = xDelete-1
+                y = digitToInt (relevantM!!1)
+        in enPassantFunc b True xDelete xMove y (color(head b))
+updateBoard b EnPassantR = 
+        let     memory = (name (head b))
+                relevantM = (drop (length memory-2) memory)
+                xDelete = convX (relevantM!!0)
+                xMove = xDelete+1
+                y = digitToInt (relevantM!!1)
+        in enPassantFunc b False xDelete xMove y (color(head b))
+updateBoard b CastleLong = castlingFunc b True (color (head b)) yPos where yPos =  if (color (head b) == 'w') then 0 else 7
+updateBoard b CastleShort = castlingFunc b False (color (head b)) yPos where yPos =  if (color (head b) == 'w') then 0 else 7
+updateBoard (x:xs) y = s  ++ updateBoard xs y 
+                            where s | figurCheck x y == F2 = [] 
+                                    | otherwise = [figurCheck x y] 
 
+-- A recursive call of updateBoard.
+updateBoardAll :: [Figur] -> [Move] -> [Figur]
+updateBoardAll l [] = l
+updateBoardAll f (x:xs) = updateBoardAll (updateBoard f x) xs  
 
+-- Receives a figure and a move and returns a figure.
+-- The returned figure can be the given figure after a move,
+-- the given figure untouched or nothing, if the figure has been taken.
+figurCheck :: Figur -> Move -> Figur
+figurCheck f m  | x f == convX (xalt m) && y f == yalt m = F (convX (xnew m)) (ynew m) (if ((name f == "pawn") && (ynew m == 0 || ynew m == 7)) then "queen" else name f) (color f) 
+                | x f == convX (xnew m) && y f == ynew m = F2 
+                | x f == -1 = F (x f) (y f) (name f++convFromMove m) (turnColor (color f))
+                | otherwise = f
 
+-- Changes Board based on which side the castling happened. Similar logic as figurCheck
+castlingFunc:: [Figur] -> Bool -> Char -> Int -> [Figur]
+castlingFunc [] long c num = [F (-2) (-2) "castle" c]
+castlingFunc (f:fs) long c num = newFigur : castlingFunc fs long c num
+                where newFigur | long && name f == "king" && color f ==  c = F 2 num "king" c
+                               | not long && name f == "king" && color f ==  c = F 6 num "king" c
+                               | long && x f == 0 && y f == num = F 3 num "rook" c
+                               | not long && x f == 7 && y f == num = F 5 num "rook" c
+                               | long && x f == (-1) = F (x f) (y f) (name f++"CLC"++[yChar]) (turnColor c)
+                               | not long && x f == (-1) = F (x f) (y f) (name f++"CLG"++[yChar]) (turnColor c)
+                               | otherwise = f
+                               where yChar | c == 'w' = '0'
+                                           | otherwise = '7'
 
+-- Changes Board based on which pawn took en Passant. Similiar logic as figurCheck
+enPassantFunc:: [Figur] -> Bool -> Int -> Int -> Int -> Char -> [Figur]
+enPassantFunc [] _ _ _ _ _ = []
+enPassantFunc (f:fs) fromLeft xDelete xMove yDM c = newFigur ++ enPassantFunc fs fromLeft xDelete xMove yDM c
+                where newFigur  | x f == xDelete && y f == yDM = []
+                                | x f == xMove && y f == yDM = [F xDelete (if c == 'w' then yDM+1 else yDM-1) (name f) (color f)]
+                                | x f == (-1) = [F (x f) (y f) (name f++enPassantFuncHelper fromLeft xDelete yDM (if c == 'w' then 1 else (-1))) (turnColor (color f))]
+                                | otherwise = [f]
+-- Creates the string that will be added to the memory figure after en Passant
+enPassantFuncHelper:: Bool->Int->Int->Int->String
+enPassantFuncHelper fromLeft xDelete yDM offset = convToX (xDelete+(if fromLeft then (-1) else 1)) : convToX (yDM-17) : convToX xDelete : [convToX (yDM-17+offset)]
 
 
 
@@ -308,7 +292,11 @@ createBoardVariations b (x:xs) = moveFigure b moveList ++ createBoardVariations 
 createAllBoardVariations :: [[Figur]] -> [[Figur]]
 createAllBoardVariations [] = []
 createAllBoardVariations [b] = createBoardVariations b b
-createAllBoardVariations (b:bs) = (createBoardVariations b b) ++ createAllBoardVariations bs
+createAllBoardVariations (b:bs) = boardVariationCheck ++ createAllBoardVariations bs
+                                where boardVariationCheck       | (length b == 3) = [[(F (-1) (-1) (name (head b)) (turnColor (color(head b)))), b!!1,b!!2]]
+                                                                | boardInstance == [] = [[(F (-1) (-1) ('X':name (head b)) (turnColor (color(head b)))),(F 1 1 "king" (turnColor (color(head b)))),(F 7 7 "knight" (color(head b)))]]
+                                                                | otherwise = boardInstance
+                                        where boardInstance = (createBoardVariations b b)
 
 
 --A list of preset moves, which help the engine get a stable start for any given game, as it gets close to castling.
